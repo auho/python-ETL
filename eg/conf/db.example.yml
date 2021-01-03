@@ -1,0 +1,9 @@
+mysql:
+  host: ""
+  port:
+  user: ""
+  passwd: ""
+  db: ""
+
+debug: 1
+env: "dev"

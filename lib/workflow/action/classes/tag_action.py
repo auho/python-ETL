@@ -1,0 +1,2 @@
+class TagAction:
+    pass
