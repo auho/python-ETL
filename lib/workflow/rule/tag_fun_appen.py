@@ -1,13 +1,13 @@
-from . import interface, fun
+from . import interface, tag_fun
 
 
-class TagRule(fun.TagRule, interface.TagAppend):
+class TagRule(tag_fun.TagRule, interface.TagAppend):
     """
     fun return: {"":"",...}
     """
 
     def tag_append(self, content):
-        res = self._func(content)
+        res = self._fun(content)
         if not res:
             return None
 

@@ -68,15 +68,15 @@ class TagFlow:
         process.DispatchCenter.dispatch(dp=dp, actions=action_list)
 
     @staticmethod
-    def flow(db, table_name, id_name, keyid, tag_name, tag_content_name, tag_rule, dp_item_funcs=None,
-             addition_fields=None, database_name=None):
+    def flow(db, table_name, id_name, keyid, tag_name, tag_content_name, tag_rule, dp_item_funcs=None, addition_fields=None,
+             database_name=None):
         """
 
         :param db:
         :param table_name:
         :param id_name:
         :param keyid:
-        :param tag_name:
+        :param tag_name: 指定 tag table name 的名字
         :param tag_content_name:
         :param tag_rule: TagRule
         :param dp_item_funcs: [[func, ['field', ...]]]
@@ -101,3 +101,11 @@ class TagFlow:
                                read_page_size=2000, last_id=0)
 
         process.DispatchCenter.dispatch(dp=dp, actions=[action])
+
+    @staticmethod
+    def flow_seg_words_flag(db, table_name, id_name, keyid, tag_content_name, tag_rule, dp_item_funcs=None, addition_fields=None,
+                            database_name=None):
+
+        return TagFlow.flow(db=db, table_name=table_name, id_name=id_name, keyid=keyid, tag_name=tag_content_name + '_words',
+                            tag_content_name=tag_content_name, tag_rule=tag_rule, dp_item_funcs=dp_item_funcs, addition_fields=addition_fields,
+                            database_name=database_name)

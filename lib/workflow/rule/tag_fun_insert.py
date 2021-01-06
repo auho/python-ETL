@@ -1,21 +1,21 @@
-from . import interface, fun
+from . import interface, tag_fun
 
 
-class TagRule(fun.TagRule, interface.TagInsert):
+class TagRule(tag_fun.TagRule, interface.TagInsert):
     """
-    fun return: [(),...]
+    fun return:
     """
 
-    def __init__(self, names, func):
-        super().__init__(func=func)
+    def __init__(self, names, fun_list):
+        super().__init__(fun_list=fun_list)
 
-        self._names = names  # list [,...]
+        self._names = names
 
     def get_all_name(self):
         return self._names
 
     def tag_insert(self, content):
-        res = self._func(content)
+        res = self._fun(content)
         if not res:
             return None
 

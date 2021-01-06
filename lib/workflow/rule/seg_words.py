@@ -10,9 +10,6 @@ class SegWordsRule:
     def main(self):
         pass
 
-    def get_all_name(self):
-        return ['word', 'flag', 'num']
-
     def seg_flag(self, content):
         """
         [(word, flag), ...]

@@ -1,8 +1,8 @@
 class TagRule:
-    def __init__(self, fun):
-        self._fun = fun
+    def __init__(self, func):
+        self._func = func
 
     def main(self):
-        if not self._fun:
-            if not callable(self._fun):
+        if not self._func:
+            if not callable(self._func):
                 raise Exception("fun is Error!")
