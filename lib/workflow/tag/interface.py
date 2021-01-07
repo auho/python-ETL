@@ -7,31 +7,19 @@ class Tag(metaclass=ABCMeta):
         pass
 
 
-class TagCover(Tag):
-    @abstractmethod
-    def tag_cover(self, name, content):
-        """
-
-        :param name:
-        :param content:
-        :return: dict
-        """
-        pass
-
-
 class TagInsert(Tag):
     @abstractmethod
-    def tag_insert(self, content):
+    def tag_insert(self, item):
         """
         返回多条
 
-        :param content:
+        :param item:
         :return: [(),...]
         """
         pass
 
     @abstractmethod
-    def get_all_name(self):
+    def get_keys(self):
         """
 
         :return: [str,...]
@@ -39,12 +27,12 @@ class TagInsert(Tag):
         pass
 
 
-class TagAppend(Tag):
+class TagUpdate(Tag):
     @abstractmethod
-    def tag_append(self, content):
+    def tag_update(self, item):
         """
 
-        :param content:
+        :param item:
         :return: dict
         """
         pass

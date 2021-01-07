@@ -1,5 +1,5 @@
 from lib.dataflow import mysql
-from ..rule import tag_sole
+from lib.workflow.tag import interface
 
 """
 # sole
@@ -23,8 +23,7 @@ class Action(mysql.ActionInsert):
         super().__init__(db=db, table_name=table_name, fields=[], database_name=database_name, size=size, kwargs=kwargs)
 
         self._keyid = keyid
-        self._tagRule = None  # type: tag_sole.TagRule
-        self._tagRuleContentName = None
+        self._tagRule = None  # type: interface.TagInsert
         self._additionFields = addition_fields
         self._fields = [keyid]
 
@@ -35,17 +34,19 @@ class Action(mysql.ActionInsert):
         if not self._tagRule:
             raise Exception('tag rule is error!')
 
-    def add_rule(self, content_name, tag_rule):
+    def add_rule(self, tag_rule):
         if self._tagRule:
             raise Exception('tag rule is exists!')
+
+        if not isinstance(tag_rule, interface.TagInsert):
+            raise Exception('tag rule is not interface.TagInsert!')
 
         tag_rule.main()
 
         self._tagRule = tag_rule
-        self._tagRuleContentName = content_name
 
         self._fields.extend(self._additionFields)
-        self._fields.extend(tag_rule.get_all_name())
+        self._fields.extend(tag_rule.get_keys())
 
     def do(self, item):
         insert_item = (item[self._keyid],)
@@ -53,7 +54,7 @@ class Action(mysql.ActionInsert):
             for field in self._additionFields:
                 insert_item = insert_item + (item[field],)
 
-        tags = self._tagRule.tag_insert(item[self._tagRuleContentName])
+        tags = self._tagRule.tag_insert(item)
         if tags:
             for tag in tags:
                 self.add_item(insert_item + tag)

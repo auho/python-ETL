@@ -1,4 +1,4 @@
-from . import tag, interface
+from . import tag
 
 """
 rule = tag_sole.TagRule(db=db, table_name='rule_one',
@@ -9,15 +9,15 @@ rule = tag_sole.TagRule(db=db, table_name='rule_one',
 """
 
 
-class TagRule(tag.TagRule, interface.TagInsert, interface.TagAppend):
+class TagRule(tag.TagRule):
     def _main(self):
         self._keywordFunList.append(tag.symbol_underline_fun)
 
-    def get_all_name(self):
+    def get_keys(self):
         return [self._keywordName] + self._tagsName
 
     def tag_insert(self, content):
         return self._tag_insert(content=content)
 
-    def tag_append(self, content):
-        return self._tag_append(content=content)
+    def tag_update(self, content):
+        return self._tag_update(content=content)

@@ -41,24 +41,24 @@ class Mysql:
         self.cursor.execute(sql)
         return self.cursor.fetchall()
 
-    def update_by_data(self, table_name, keyid, item, database_name=None):
+    def update_by_data(self, table_name, id_name, item, database_name=None):
         """
 
         :param table_name:
-        :param keyid:
+        :param id_name:
         :param item:
         :param database_name:
         :return:
         """
 
-        sql = self._generate_update_sql(database_name=database_name, table_name=table_name, item=item, keyid=keyid)
+        sql = self._generate_update_sql(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
 
         return self.execute(sql=sql)
 
-    def update_many(self, table_name, keyid, items, database_name=None):
+    def update_many(self, table_name, id_name, items, database_name=None):
         try:
             for item in items:
-                sql = self._generate_update_sql(database_name=database_name, table_name=table_name, item=item, keyid=keyid)
+                sql = self._generate_update_sql(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
 
                 self.cursor.execute(sql)  # 执行sql语句
 
@@ -114,7 +114,7 @@ class Mysql:
 
         return self.execute(sql)
 
-    def _generate_update_sql(self, database_name, table_name, item, keyid):
+    def _generate_update_sql(self, database_name, table_name, item, id_name):
         table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
 
         # 拼接 update sql
@@ -130,8 +130,8 @@ class Mysql:
             else:
                 value_string = f"{value}"
 
-            if key == keyid:
-                where = f" WHERE `{keyid}` = {value_string}"
+            if key == id_name:
+                where = f" WHERE `{id_name}` = {value_string}"
             else:
                 fields.append(f"`{key}` = {value_string}")
 

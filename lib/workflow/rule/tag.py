@@ -206,7 +206,7 @@ class TagRule:
 
         return self._generate_frequency(keywords=keywords)
 
-    def _tag_append(self, content):
+    def _tag_update(self, content):
         keywords_frequency = self._tag(content=content)
         if not keywords_frequency:
             return False

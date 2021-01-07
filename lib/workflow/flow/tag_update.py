@@ -1,10 +1,10 @@
 from lib.dataflow import process
 from lib.dataflow import mysql
-from ..action import tag_append, tag_cover
+from ..action import tag_update
 
 """
 tag_rules = [
-    ['content', tag.TagRule()]
+    tag.TagRule()
 ]
 
 tag_append.TagFlow.flow(id_name='id_name', keyid='keyid', db=db, table_name='table_name', tag_rules=tag_rules)
@@ -14,38 +14,31 @@ tag_append.TagFlow.flow(id_name='id_name', keyid='keyid', db=db, table_name='tab
 
 class TagFlow:
     @staticmethod
-    def flow_append(id_name, keyid, db, table_name, tag_rules, database_name=None, is_append=True):
+    def flow_update(db, table_name, id_name, table_keys, tag_rules, database_name=None, dp_item_funcs=None):
         """
 
-        :param id_name:
-        :param keyid:
         :param db:
         :param table_name:
-        :param tag_rules: [['content_name', TagRule], ...]
+        :param id_name:
+        :param table_keys:
+        :param tag_rules:
         :param database_name:
-        :param is_append: true append; false cover
+        :param dp_item_funcs: [[func, ['field', ...]]]
         :return:
         """
 
-        fields = [id_name, keyid]
+        if type(table_keys) is not list:
+            raise Exception("table keys is not list")
 
-        if is_append:
-            action = tag_append.Action(db=db, table_name=table_name, keyid=keyid, database_name=database_name)
-        else:
-            action = tag_cover.Action(db=db, table_name=table_name, keyid=keyid, database_name=database_name)
+        fields = [id_name] + table_keys
+        action = tag_update.Action(db=db, table_name=table_name, id_name=id_name, database_name=database_name)
 
-        for item in tag_rules:
-            fields.append(item[0])
-            action.add_rule(content_name=item[0], tag_rule=item[1])
+        for tag_rule in tag_rules:
+            action.add_rule(tag_rule=tag_rule)
 
         fields = list(set(fields))
 
-        dp = mysql.DataProvide(db=db, table_name=table_name, id_name=id_name, database_name=database_name, fields=fields, read_page_size=2000,
-                               last_id=0)
+        dp = mysql.DataProvide(db=db, table_name=table_name, id_name=id_name, database_name=database_name, fields=fields, item_funcs=dp_item_funcs,
+                               read_page_size=2000, last_id=0)
 
         process.DispatchCenter.dispatch(dp=dp, actions=[action])
-
-    @staticmethod
-    def flow_cover(id_name, keyid, db, table_name, tag_rules, database_name=None):
-        return TagFlow.flow_append(id_name=id_name, keyid=keyid, db=db, table_name=table_name, tag_rules=tag_rules, database_name=database_name,
-                                   is_append=False)

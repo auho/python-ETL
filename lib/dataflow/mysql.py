@@ -107,13 +107,13 @@ class ActionInsert(process.Action):
 
 
 class ActionUpdate(process.Action):
-    def __init__(self, db, table_name, keyid, database_name=None, size=5000, kwargs=None):
+    def __init__(self, db, table_name, id_name, database_name=None, size=5000, kwargs=None):
         super().__init__(kwargs=kwargs)
 
         self.db = db  # type:mysql.Mysql
         self.database_name = database_name
         self.table_name = table_name
-        self.keyid = keyid
+        self.id_name = id_name
         self.size = size
 
     def before_action(self):
@@ -125,5 +125,5 @@ class ActionUpdate(process.Action):
 
     def after_done(self):
         if self._items:
-            self.db.update_many(table_name=self.table_name, keyid=self.keyid, items=self._items, database_name=self.database_name)
+            self.db.update_many(table_name=self.table_name, id_name=self.id_name, items=self._items, database_name=self.database_name)
             self._items = []

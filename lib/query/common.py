@@ -124,7 +124,7 @@ class BaseQuery:
 
     @staticmethod
     def _execute_update_many(table_name, keyid, items, db, database_name=None):
-        return db.update_many(table_name=table_name, keyid=keyid, items=items, database_name=database_name)
+        return db.update_many(table_name=table_name, id_name=keyid, items=items, database_name=database_name)
 
     @staticmethod
     def _truncate(table_name, db, database_name=None):

@@ -12,6 +12,11 @@ class SplitToWords:
         pass
 
     def split(self, content):
+        """
+
+        :param content:
+        :return: [,...]
+        """
         all_tag_list = []
         if not content:
             return all_tag_list
