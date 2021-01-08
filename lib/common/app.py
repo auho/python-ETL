@@ -39,7 +39,7 @@ class PartConfig:
         return self._mysqlDbConf
 
 
-class Config:
+class App:
     basePath = None
     mysqlDb = None
     mysqlDbConf = None

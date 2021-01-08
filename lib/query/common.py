@@ -132,14 +132,14 @@ class BaseQuery:
 
 
 class CommonQuery(BaseQuery):
-    def __init__(self, config):
+    def __init__(self, app):
         super().__init__()
 
-        self._basePath = config.basePath
-        self.mysqlDbConf = config.mysqlDbConf
-        self.mysqlDb = config.mysqlDb
-        self.DEBUG = config.DEBUG
-        self.ENV_DEBUG = config.ENV_DEBUG
+        self._basePath = app.basePath
+        self.mysqlDbConf = app.mysqlDbConf
+        self.mysqlDb = app.mysqlDb
+        self.DEBUG = app.DEBUG
+        self.ENV_DEBUG = app.ENV_DEBUG
 
         self._log_init()
 

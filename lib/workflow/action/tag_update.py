@@ -1,13 +1,5 @@
 from lib.dataflow import mysql
-from lib.workflow.tag import interface
-
-"""
-tag_rule = tag_sole.TagRule()
-
-a = Action(db, table_name, keyid, database_name)
-a.add_rule(content_name, tag_rule)
-
-"""
+from lib.workflow.func.func import FuncUpdate
 
 
 class Action(mysql.ActionUpdate):
@@ -20,31 +12,40 @@ class Action(mysql.ActionUpdate):
     def __init__(self, db, table_name, id_name, database_name=None, size=1000, kwargs=None):
         super().__init__(db=db, table_name=table_name, id_name=id_name, database_name=database_name, size=size, kwargs=kwargs)
 
-        self._tagRules = []  # type: [interface.TagUpdate]
+        self._funcs = []  # type: [FuncUpdate]
 
     def init_action(self):
         pass
 
     def check_action(self):
-        if not self._tagRules:
-            raise Exception('tag rules is error!')
+        if not self._funcs:
+            raise Exception('func is error!')
 
-    def add_rule(self, tag_rule):
-        if tag_rule or not isinstance(tag_rule, interface.TagUpdate):
-            raise Exception('tag rule is not interface.TagUpdate!')
+    def get_fields(self):
+        fields = []
+        for func in self._funcs:
+            fields.extend(func.get_fields())
 
-        tag_rule.main()
-        self._tagRules.append(tag_rule)
+        return list(set(fields))
+
+    def add_func(self, func_object):
+        if not func_object or not isinstance(func_object, FuncUpdate):
+            raise Exception('func is not func.Func!')
+
+        self._funcs.append(func_object)
 
     def do(self, item):
         update_item = {self.id_name: item[self.id_name]}
 
         is_update = False
-        for tag_rule in self._tagRules:
-
-            tag_item = tag_rule.tag_update(item)
+        for func_object in self._funcs:  # type: FuncUpdate
+            tag_item = func_object.update(item=item)
             if not tag_item:
                 continue
+
+            if type(tag_item) != dict:
+                print(tag_item, item)
+                raise Exception("function result is not dict!")
 
             update_item.update(tag_item)
             is_update = True

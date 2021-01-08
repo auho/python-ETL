@@ -4,7 +4,7 @@ rule = split_to_words.SplitToWords(sep=',')
 """
 
 
-class SplitToWords:
+class SplitToWordsRule:
     def __init__(self, sep):
         self._sep = sep
 

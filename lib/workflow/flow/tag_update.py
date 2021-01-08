@@ -1,41 +1,33 @@
 from lib.dataflow import process
 from lib.dataflow import mysql
-from ..action import tag_update
-
-"""
-tag_rules = [
-    tag.TagRule()
-]
-
-tag_append.TagFlow.flow(id_name='id_name', keyid='keyid', db=db, table_name='table_name', tag_rules=tag_rules)
-
-"""
+from lib.workflow.action import tag_update
+from lib.workflow.func.func import FuncUpdate
 
 
 class TagFlow:
     @staticmethod
-    def flow_update(db, table_name, id_name, table_keys, tag_rules, database_name=None, dp_item_funcs=None):
+    def flow(db, table_name, id_name, funcs, database_name=None, dp_item_funcs=None):
         """
 
         :param db:
         :param table_name:
         :param id_name:
-        :param table_keys:
-        :param tag_rules:
+        :param funcs:
         :param database_name:
         :param dp_item_funcs: [[func, ['field', ...]]]
         :return:
         """
 
-        if type(table_keys) is not list:
-            raise Exception("table keys is not list")
+        if type(funcs) is not list:
+            raise Exception("tag rules is not list")
 
-        fields = [id_name] + table_keys
+        fields = [id_name]
         action = tag_update.Action(db=db, table_name=table_name, id_name=id_name, database_name=database_name)
 
-        for tag_rule in tag_rules:
-            action.add_rule(tag_rule=tag_rule)
+        for func in funcs:  # type: FuncUpdate
+            action.add_func(func_object=func)
 
+        fields.extend(action.get_fields())
         fields = list(set(fields))
 
         dp = mysql.DataProvide(db=db, table_name=table_name, id_name=id_name, database_name=database_name, fields=fields, item_funcs=dp_item_funcs,

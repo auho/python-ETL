@@ -1,16 +1,22 @@
-from lib.workflow.tag import tag
+from .func import FuncInsert
 from lib.workflow.rule import seg_words
 
 
-def get_seg_words_flag_tag_insert(key):
-    seg = seg_words.SegWordsRule()
+class FuncSegWords(FuncInsert):
+    def __init__(self, key):
+        self._segWords = seg_words.SegWordsRule()
+        self._key = key
 
-    def seg_words_flag_insert(item):
-        if key not in item:
+    def get_fields(self):
+        return [self._key]
+
+    def get_keys(self):
+        return ['word', 'flag']
+
+    def insert(self, item):
+        if self._key not in item:
             return None
 
-        content = item[key]
+        content = item[self._key]
 
-        return seg.seg_flag(content=content)
-
-    return tag.TagInsert(['word', 'flag'], seg_words_flag_insert)
+        return self._segWords.seg_flag(content=content)

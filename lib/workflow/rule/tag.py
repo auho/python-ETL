@@ -13,15 +13,20 @@ def strict_en_fun(keyword):
     :return:
     """
 
-    pattern_all_en = re.compile(r'[^\w+.]', re.A)
-    is_all_en = re.findall(pattern_all_en, keyword)
+    pattern_all_en = re.compile(r'[^\w+._\s()]', re.A)
+    items = re.findall(pattern_all_en, keyword)
 
-    if len(is_all_en) <= 0:
-        keyword = '^' + keyword + '(?=[^A-Za-z-])' + '|' \
-                  + '(?<=[^0-9A-Za-z-])' + keyword + '(?=[^A-Za-z-])' + '|' + \
-                  '(?<=[^0-9A-Za-z-])' + keyword + '$'
+    is_all_en = True
+    if len(items) > 0:
+        is_all_en = False
 
-    return keyword
+    keyword_regex = keyword
+    if is_all_en:
+        keyword_regex = '^' + keyword + '(?=[^A-Za-z-])' + '|' \
+                        + '(?<=[^0-9A-Za-z-])' + keyword + '(?=[^A-Za-z-])' + '|' + \
+                        '(?<=[^0-9A-Za-z-])' + keyword + '$'
+
+    return is_all_en, keyword_regex
 
 
 def filter_regex_syntax_fun(keyword):
@@ -57,21 +62,24 @@ class TagRule:
     单字段打标签
     """
 
-    def __init__(self, db, table_name, keyword_name, tags_name, alias=None, keyword_fun_list=None, database_name=None):
+    def __init__(self, db, name=None, complete_keyword_name=None, complete_tags_name=None, complete_table_name=None, alias=None,
+                 keyword_fun_list=None, database_name=None):
         """
 
         :param db: 数据库
-        :param table_name: rule list 表
-        :param keyword_name: 匹配的关键词
-        :param tags_name: 标签名称 ['tag1', 'tag2']
+        :param name:
+        :param complete_table_name: rule list 表
+        :param complete_keyword_name: 匹配的关键词
+        :param complete_tags_name: 标签名称 ['tag1', 'tag2']
         :param alias: 标签别名 {'name':'alias'} name -> keyword table name； alias -> content table name
         :param database_name:
         """
 
         self._db = db
-        self._tableName = table_name
-        self._keywordName = keyword_name
-        self._tagsName = tags_name
+        self._name = name
+        self._tableName = complete_table_name
+        self._keywordName = complete_keyword_name
+        self._tagsName = complete_tags_name
         self._alias = alias
         self._keywordFunList = keyword_fun_list
         self._databaseName = database_name
@@ -84,7 +92,19 @@ class TagRule:
         self._regexGroupName = '_rEgEx_'
         self._badKeywordDict = {}
 
+        self.main()
+
     def _check(self):
+        if self._name:
+            self._tableName = 'rule_' + self._name
+            self._keywordName = self._name + '_keyword'
+
+            columns = self._db.get_table_columns(table_name=self._tableName, database_name=self._databaseName)
+            if not columns:
+                raise Exception('rule table columns is error!')
+
+            self._tagsName = [x for x in columns if x.find(self._name) == 0]
+
         if not self._tableName:
             raise Exception("table name IS ERROR!")
 
@@ -134,23 +154,12 @@ class TagRule:
         regex_list = []
         group_regex_list = []
         for tag_rule in self._tagRuleList:
-            keyword = tag_rule[self._keywordName]
-            keyword_regex = keyword
+            keyword = tag_rule[self._keywordName].strip()
+            is_all_en, keyword_regex = strict_en_fun(keyword=keyword)
 
-            pattern_all_en = re.compile(r'[^\w+.]', re.A)
-            cn_len = re.findall(pattern_all_en, keyword)
-            is_all_en = False
-            if len(cn_len) <= 0:
-                is_all_en = True
+            keyword_regex = filter_regex_syntax_fun(keyword)
 
-            # 英文名称需要正则保证前后无英文字母
-            if is_all_en:
-                keyword_regex = '^' + keyword + '(?=[^A-Za-z-])' + '|' \
-                                + '(?<=[^0-9A-Za-z-])' + keyword + '(?=[^A-Za-z-])' + '|' + \
-                                '(?<=[^0-9A-Za-z-])' + keyword + '$'
-            else:
-                keyword_regex = filter_regex_syntax_fun(keyword)
-
+            if not is_all_en:
                 if self._keywordFunList:
                     for keyword_fun in self._keywordFunList:
                         res = keyword_fun(keyword_regex)
@@ -160,8 +169,10 @@ class TagRule:
             if keyword_regex == keyword:
                 regex_list.append(keyword_regex)
             else:
-                if not is_all_en:
-                    keyword = self._store_bad_keyword(keyword=keyword)
+                if is_all_en:
+                    keyword = self._store_english_bad_keyword(keyword=keyword)
+                else:
+                    keyword = self._store_chinese_bad_keyword(keyword=keyword)
 
                 keyword_regex = f'(?P<{keyword}>{keyword_regex})'
                 group_regex_list.append(keyword_regex)
@@ -318,10 +329,17 @@ class TagRule:
 
         return keyword
 
-    def _store_bad_keyword(self, keyword):
-        good_keyword = keyword.replace('.', '_')
+    def _store_chinese_bad_keyword(self, keyword):
+        good_keyword = self._change_bad_keyword(keyword=keyword)
         good_keyword = re.sub('^([^a-zA-Z_])', '_\\1', good_keyword, 1)
 
+        self._badKeywordDict[good_keyword] = keyword
+
+        return good_keyword
+
+    def _store_english_bad_keyword(self, keyword):
+        good_keyword = self._change_bad_keyword(keyword=keyword)
+        good_keyword = re.sub('^([^a-zA-Z_])', '_\\1', good_keyword, 1)
         self._badKeywordDict[good_keyword] = keyword
 
         return good_keyword
@@ -331,6 +349,18 @@ class TagRule:
             return self._badKeywordDict[good_keyword]
 
         return good_keyword
+
+    @staticmethod
+    def _change_bad_keyword(keyword):
+        keyword = keyword.replace('.', 'A1A')
+        keyword = keyword.replace(' ', 'A2A')
+        keyword = keyword.replace('+', 'A3A')
+        keyword = keyword.replace('(', 'A4A')
+        keyword = keyword.replace(')', 'A5A')
+        keyword = keyword.replace('-', 'A6A')
+        keyword = keyword.replace('?', 'A7A')
+
+        return keyword
 
     def _main(self):
         pass

@@ -1,38 +1,44 @@
-from lib.workflow.tag import tag
-from lib.workflow.rule import tag_multi, tag_sole
+from .func import FuncInsert, FuncUpdate
 
 
-def get_tag_multi_insert(key, rule: tag_multi.TagRule):
-    def tag_multi_insert(item):
-        if key not in item:
+class FuncTagInsert(FuncInsert):
+    def __init__(self, key, rule):
+        self._rule = rule
+        self._key = key
+
+    def get_fields(self):
+        return [self._key]
+
+    def get_keys(self):
+        return self._rule.get_keys()
+
+    def insert(self, item):
+        if self._key not in item:
             return None
 
-        content = item[key]
+        content = item[self._key]
 
-        return rule.tag_insert(content=content)
-
-    return tag.TagInsert(rule.get_keys(), tag_multi_insert)
+        return self._rule.tag_insert(content=content)
 
 
-def get_tag_insert(key, rule: tag_sole.TagRule):
-    def tag_insert(item):
-        if key not in item:
+class FuncTagUpdate(FuncUpdate):
+    def __init__(self, key, rules):
+        self._rules = rules
+        self._key = key
+
+    def get_fields(self):
+        return [self._key]
+
+    def update(self, item):
+        if self._key not in item:
             return None
 
-        content = item[key]
+        content = item[self._key]
 
-        return rule.tag_insert(content=content)
+        update_item = dict()
+        for rule in self._rules:
+            u = rule.tag_update(content=content)
+            if u:
+                update_item.update(u)
 
-    return tag.TagInsert(rule.get_keys(), tag_insert)
-
-
-def get_tag_update(key, rule: tag_sole.TagRule):
-    def tag_update(item):
-        if key not in item:
-            return None
-
-        content = item[key]
-
-        return rule.tag_update(content=content)
-
-    return tag.TagInsert(rule.get_keys(), tag_update)
+        return update_item

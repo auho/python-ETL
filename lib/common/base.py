@@ -1,6 +1,6 @@
 import os
 import sys
-from . import config
+from . import app
 from lib.query import common
 
 FILE = os.path.abspath(sys.argv[0])
@@ -12,6 +12,6 @@ __common_path = os.path.dirname(__file_path)
 LIB_PATH = os.path.dirname(__common_path)
 ROOT_PATH = os.path.dirname(LIB_PATH)
 
-APP = config.Config(MODULE_PATH)
+APP = app.App(MODULE_PATH)
 
-QUERY = common.CommonQuery(config=config)
+QUERY = common.CommonQuery(app=APP)

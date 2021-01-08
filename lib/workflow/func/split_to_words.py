@@ -1,16 +1,22 @@
-from lib.workflow.tag import tag
+from .func import FuncInsert
 from lib.workflow.rule import split_to_words
 
 
-def get_split_to_words_tag_insert(key, sep):
-    split = split_to_words.SplitToWords(sep=sep)
+class FuncSplitToWords(FuncInsert):
+    def __init__(self, key, sep):
+        self._split = split_to_words.SplitToWordsRule(sep=sep)
+        self._key = key
 
-    def split_to_words_insert(item):
-        if key not in item:
+    def get_fields(self):
+        return [self._key]
+
+    def get_keys(self):
+        return ['word']
+
+    def insert(self, item):
+        if self._key not in item:
             return None
 
-        content = item[key]
+        content = item[self._key]
 
-        return split.split(content=content)
-
-    return tag.TagInsert(['word'], split_to_words_insert)
+        return self._split.split(content=content)
