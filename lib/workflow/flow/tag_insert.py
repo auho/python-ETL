@@ -20,12 +20,13 @@ class TagFlow:
         process.DispatchCenter.dispatch(dp=dp, actions=[actions])
 
     @staticmethod
-    def flow(db, table_name, id_name, func: FuncInsert, addition_fields, database_name=None):
+    def flow(db, table_name, id_name, tag_table_name, func: FuncInsert, addition_fields, database_name=None):
         """
 
         :param db:
         :param table_name:
         :param id_name:
+        :param tag_table_name:
         :param func:
         :param addition_fields:
         :param database_name:
@@ -33,13 +34,9 @@ class TagFlow:
         """
 
         fields = [id_name]
-        tag_table = func.get_table_name()
 
-        action = tag_insert.Action(db=db, table_name=tag_table, addition_fields=addition_fields, database_name=database_name)
+        action = tag_insert.Action(db=db, table_name=tag_table_name, addition_fields=addition_fields, database_name=database_name)
         action.add_func(func_object=func)
-
-        if addition_fields:
-            fields.extend(addition_fields)
 
         fields.extend(action.get_fields())
         fields = list(set(fields))

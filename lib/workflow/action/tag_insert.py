@@ -10,6 +10,9 @@ class Action(mysql.ActionInsert):
         self._fields = []  # type: list
         self._func = None  # type: FuncInsert
 
+        if self._additionFields:
+            self._fields.extend(self._additionFields)
+
     def init_action(self):
         self.fields = self._fields
 
@@ -18,7 +21,7 @@ class Action(mysql.ActionInsert):
             raise Exception('func is error!')
 
     def get_fields(self):
-        return self._func.get_fields()
+        return self._fields
 
     def add_func(self, func_object):
         if self._func:
@@ -28,10 +31,6 @@ class Action(mysql.ActionInsert):
             raise Exception('func is not func.FuncInsert!')
 
         self._func = func_object
-
-        if self._additionFields:
-            self._fields.extend(self._additionFields)
-
         self._fields.extend(self._func.get_keys())
 
     def do(self, item):

@@ -3,13 +3,9 @@ from lib.workflow.rule import split_to_words
 
 
 class FuncSplitToWords(FuncInsert):
-    def __init__(self, key, sep, table_name):
+    def __init__(self, key, sep):
         self._split = split_to_words.SplitToWordsRule(sep=sep)
         self._key = key
-        self._table_name = table_name
-
-    def get_table_name(self):
-        return self._table_name
 
     def get_fields(self):
         return [self._key]

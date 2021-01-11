@@ -19,10 +19,6 @@ class FuncTransfer(Func):
     def transfer(self, item):
         pass
 
-    @abstractmethod
-    def get_table_name(self):
-        pass
-
 
 class FuncInsert(Func):
     @abstractmethod
@@ -37,10 +33,6 @@ class FuncInsert(Func):
     def get_fields(self):
         pass
 
-    @abstractmethod
-    def get_table_name(self):
-        pass
-
 
 class FuncUpdate(Func):
     @abstractmethod
@@ -49,4 +41,18 @@ class FuncUpdate(Func):
 
     @abstractmethod
     def update(self, item):
+        pass
+
+
+class FuncMulti(Func):
+    @abstractmethod
+    def do(self, item):
+        pass
+
+    @abstractmethod
+    def get_keys(self):
+        pass
+
+    @abstractmethod
+    def get_fields(self):
         pass
