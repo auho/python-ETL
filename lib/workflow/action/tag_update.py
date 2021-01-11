@@ -30,7 +30,7 @@ class Action(mysql.ActionUpdate):
 
     def add_func(self, func_object):
         if not func_object or not isinstance(func_object, FuncUpdate):
-            raise Exception('func is not func.Func!')
+            raise Exception('func is not func.FuncUpdate!')
 
         self._funcs.append(func_object)
 

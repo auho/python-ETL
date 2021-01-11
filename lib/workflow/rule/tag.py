@@ -63,7 +63,7 @@ class TagRule:
     """
 
     def __init__(self, db, name=None, complete_keyword_name=None, complete_tags_name=None, complete_table_name=None, alias=None,
-                 keyword_fun_list=None, database_name=None):
+                 fixed_tags=None, keyword_fun_list=None, database_name=None):
         """
 
         :param db: 数据库
@@ -72,6 +72,7 @@ class TagRule:
         :param complete_keyword_name: 匹配的关键词
         :param complete_tags_name: 标签名称 ['tag1', 'tag2']
         :param alias: 标签别名 {'name':'alias'} name -> keyword table name； alias -> content table name
+        :param fixed_tags: {name: vale}
         :param database_name:
         """
 
@@ -79,18 +80,20 @@ class TagRule:
         self._name = name
         self._tableName = complete_table_name
         self._keywordName = complete_keyword_name
-        self._tagsName = complete_tags_name
-        self._alias = alias
-        self._keywordFunList = keyword_fun_list
+        self._tagsName = complete_tags_name  # type: list
+        self._alias = alias  # type: dict
+        self._fixed_tags = fixed_tags  # type: dict
+        self._keywordFunList = keyword_fun_list  # type: list
         self._databaseName = database_name
 
-        self._fieldsAlias = {}
-        self._tagRuleList = None
+        self._fieldsAlias = {}  # type: dict
+        self._tagRuleList = None  # type: list
         self._regexString = ''
         self._pattern = None
         self._tagsDict = {}
         self._regexGroupName = '_rEgEx_'
         self._badKeywordDict = {}
+        self._fixedName = []  # type: list
 
         self.main()
 
@@ -125,12 +128,18 @@ class TagRule:
         if not self._alias:
             self._alias = {}
 
+        if not self._fixed_tags:
+            self._fixed_tags = {}
+
         self._fieldsAlias[self._keywordName] = self._get_alias(self._keywordName)
         self._keywordName = self._fieldsAlias[self._keywordName]
 
         for index, tag_name in enumerate(self._tagsName):
             self._fieldsAlias[tag_name] = self._get_alias(tag_name)
             self._tagsName[index] = self._fieldsAlias[tag_name]
+
+        for name in self._fixed_tags.keys():
+            self._fixedName.append(name)
 
     def _get_tag_rule_list(self):
         """
@@ -210,6 +219,19 @@ class TagRule:
         else:
             return tag_name
 
+    def _add_fixed_tags_values(self, item):
+        fixed = tuple()
+        for value in self._fixed_tags.keys():
+            fixed = fixed + (value,)
+
+        if fixed:
+            return item + fixed
+        else:
+            return item
+
+    def _get_insert_fields(self):
+        return self._tagsName + self._fixedName
+
     def _tag(self, content):
         keywords = self._tag_keywords(content=content)
         if not keywords:
@@ -232,7 +254,6 @@ class TagRule:
             return False
 
         keyword = self._decide_sole_keyword(keywords_frequency=keywords_frequency)
-
         item = (self._generate_keyword_insert_item(keyword=keyword),)
 
         return item
@@ -247,7 +268,8 @@ class TagRule:
 
         items = []
         for keyword, num in keywords_frequency.items():
-            items.append(self._generate_keyword_num_insert_item(keyword=keyword, num=num))
+            item = self._generate_keyword_num_insert_item(keyword=keyword, num=num)
+            items.append(item)
 
         return items
 
@@ -281,18 +303,18 @@ class TagRule:
         return keywords
 
     def _generate_keyword_num_insert_item(self, keyword, num):
-        tag_items = (keyword, num)
+        tag_item = (keyword, num)
         for tag_name in self._tagsName:
-            tag_items = tag_items + (self._tagsDict[tag_name][keyword],)
+            tag_item = tag_item + (self._tagsDict[tag_name][keyword],)
 
-        return tag_items
+        return self._add_fixed_tags_values(item=tag_item)
 
     def _generate_keyword_insert_item(self, keyword):
         tag_item = (keyword,)
         for tag_name in self._tagsName:
             tag_item = tag_item + (self._tagsDict[tag_name][keyword],)
 
-        return tag_item
+        return self._add_fixed_tags_values(item=tag_item)
 
     def _generate_keyword_update_item(self, keyword):
         update_item = dict()

@@ -1,9 +1,10 @@
+from .interface import TableDDl
 from lib.db.ddl import mysql
 
 
-class TagTable:
-    def __init__(self, source_table_name, tag_name, tags=None):
-        self._sourceTableName = source_table_name
+class Table(TableDDl):
+    def __init__(self, table_name, tag_name, tags=None):
+        self._sourceTableName = table_name
         self._tagName = tag_name
         self._tags = tags
 

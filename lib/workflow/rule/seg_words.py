@@ -1,10 +1,5 @@
 import jieba.posseg as posseg
 
-"""
-rule = seg_words.SegWordsRule()
-
-"""
-
 
 class SegWordsRule:
     def main(self):

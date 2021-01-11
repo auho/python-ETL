@@ -24,15 +24,3 @@ class Model:
             return df
         else:
             return all_df.merge(df, how='outer', on=merge_index)
-
-    @staticmethod
-    def _parse_limit(query):
-        if query.debug:
-            return ' LIMIT 100'
-        else:
-            return ''
-
-    @staticmethod
-    def _parse_field_exp(field_exp, prefix):
-        pattern = re.compile(r'(`\w)')
-        return re.sub(pattern, rf'`{prefix}`.\1', field_exp)

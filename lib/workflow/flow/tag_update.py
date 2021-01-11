@@ -6,7 +6,7 @@ from lib.workflow.func.func import FuncUpdate
 
 class TagFlow:
     @staticmethod
-    def flow(db, table_name, id_name, funcs, database_name=None, dp_item_funcs=None):
+    def flow(db, table_name, id_name, funcs, database_name=None):
         """
 
         :param db:
@@ -14,7 +14,6 @@ class TagFlow:
         :param id_name:
         :param funcs:
         :param database_name:
-        :param dp_item_funcs: [[func, ['field', ...]]]
         :return:
         """
 
@@ -30,7 +29,7 @@ class TagFlow:
         fields.extend(action.get_fields())
         fields = list(set(fields))
 
-        dp = mysql.DataProvide(db=db, table_name=table_name, id_name=id_name, database_name=database_name, fields=fields, item_funcs=dp_item_funcs,
-                               read_page_size=2000, last_id=0)
+        dp = mysql.DataProvide(db=db, table_name=table_name, id_name=id_name, database_name=database_name, fields=fields, read_page_size=2000,
+                               last_id=0)
 
         process.DispatchCenter.dispatch(dp=dp, actions=[action])

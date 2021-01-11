@@ -3,12 +3,11 @@ from lib.workflow.func.func import FuncInsert
 
 
 class Action(mysql.ActionInsert):
-    def __init__(self, db, table_name, keyid, database_name=None, size=1000, addition_fields=None, kwargs=None):
+    def __init__(self, db, table_name, database_name, size=1000, addition_fields=None, kwargs=None):
         super().__init__(db=db, table_name=table_name, fields=[], database_name=database_name, size=size, kwargs=kwargs)
 
-        self._keyid = keyid
         self._additionFields = addition_fields
-        self._fields = [keyid]
+        self._fields = []  # type: list
         self._func = None  # type: FuncInsert
 
     def init_action(self):
@@ -26,13 +25,17 @@ class Action(mysql.ActionInsert):
             raise Exception('func is exists!')
 
         if not isinstance(func_object, FuncInsert):
-            raise Exception('func is not func.Func!')
+            raise Exception('func is not func.FuncInsert!')
 
-        self._fields.extend(self._additionFields)
+        self._func = func_object
+
+        if self._additionFields:
+            self._fields.extend(self._additionFields)
+
         self._fields.extend(self._func.get_keys())
 
     def do(self, item):
-        insert_item = (item[self._keyid],)
+        insert_item = tuple()
         if self._additionFields is not None:
             for field in self._additionFields:
                 insert_item = insert_item + (item[field],)

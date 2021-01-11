@@ -1,9 +1,3 @@
-"""
-rule = split_to_words.SplitToWords(sep=',')
-
-"""
-
-
 class SplitToWordsRule:
     def __init__(self, sep):
         self._sep = sep

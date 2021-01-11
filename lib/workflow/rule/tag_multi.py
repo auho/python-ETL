@@ -6,7 +6,7 @@ class TagRule(tag.TagRule):
         self._keywordFunList.append(tag.symbol_underline_fun)
 
     def get_keys(self):
-        return [self._keywordName, 'keyword_num'] + self._tagsName
+        return [self._keywordName, 'keyword_num'] + self._get_insert_fields()
 
     def tag_insert(self, content):
         return self._tag_multi_insert(content=content)

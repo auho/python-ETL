@@ -30,6 +30,14 @@ class DDLBuild:
         sql = self._DDL.alter_int(table_name=self._tableName, name=name, length=length)
         self._add_sql(sql=sql)
 
+    def add_decimal(self, name, m=10, d=0):
+        sql = self._DDL.alter_decimal(table_name=self._tableName, name=name, m=m, d=d)
+        self._add_sql(sql=sql)
+
+    def add_index(self, name):
+        sql = self._DDL.alter_index(table_name=self._tableName, name=name)
+        self._add_sql(sql=sql)
+
     def add_unique_index(self, name):
         sql = self._DDL.alter_unique_index(table_name=self._tableName, name=name)
         self._add_sql(sql=sql)
@@ -70,17 +78,30 @@ class DDLAlter(DDLBuild):
 
 
 class DDLGenerate:
-    def create(self, table_name):
+    @staticmethod
+    def create(table_name):
         return f"CREATE TABLE `{table_name}` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT) ENGINE = `MyISAM`"
 
-    def alter_id(self, table_name, name, length=20):
+    @staticmethod
+    def alter_id(table_name, name, length=20):
         return f"ALTER TABLE `{table_name}` ADD `{name}` BIGINT({length})  NOT NULL DEFAULT 0"
 
-    def alter_int(self, table_name, name, length=11):
+    @staticmethod
+    def alter_int(table_name, name, length=11):
         return f"ALTER TABLE `{table_name}` ADD `{name}` INT({length})  NOT NULL DEFAULT 0"
 
-    def alter_string(self, table_name, name, length):
+    @staticmethod
+    def alter_string(table_name, name, length):
         return f"ALTER TABLE `{table_name}` ADD `{name}` VARCHAR({length})  NOT NULL  DEFAULT ''"
 
-    def alter_unique_index(self, table_name, name):
+    @staticmethod
+    def alter_decimal(table_name, name, m, d):
+        return f"ALTER TABLE `{table_name}` ADD `{name}` DECIMAL({m},{d}) NOT NULL DEFAULT 0"
+
+    @staticmethod
+    def alter_index(table_name, name):
+        return f"ALTER TABLE `{table_name}` ADD INDEX (`{name}`)"
+
+    @staticmethod
+    def alter_unique_index(table_name, name):
         return f"ALTER TABLE `{table_name}` ADD UNIQUE INDEX (`{name}`)"

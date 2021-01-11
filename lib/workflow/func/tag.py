@@ -2,9 +2,13 @@ from .func import FuncInsert, FuncUpdate
 
 
 class FuncTagInsert(FuncInsert):
-    def __init__(self, key, rule):
+    def __init__(self, key, rule, table_name):
         self._rule = rule
         self._key = key
+        self._table_name = table_name
+
+    def get_table_name(self):
+        return self._table_name
 
     def get_fields(self):
         return [self._key]

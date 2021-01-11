@@ -107,6 +107,13 @@ class Mysql:
             self.db.rollback()
             raise e
 
+    def drop(self, table_name, database_name=None):
+        table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
+
+        sql = f'DROP TABLE  IF EXISTS `{table_name}`'
+
+        return self.execute(sql)
+
     def truncate(self, table_name, database_name=None):
         table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
 
