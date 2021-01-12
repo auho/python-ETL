@@ -67,7 +67,7 @@ class Mysql:
             self.db.rollback()  # 发生错误后回滚
             raise e
 
-    def insert_many(self, table_name, fields, data, database_name=None):
+    def insert_many(self, table_name, fields, data, database_name=None, op='INSERT'):
         """
         fields ['a', 'b', 'c']
         data list[tuple('a', 'b', 'c'), tuple()]
@@ -77,6 +77,7 @@ class Mysql:
         :param fields:
         :param data:
         :param database_name:
+        :param op:
         :return:
         """
         if not data:
@@ -87,7 +88,7 @@ class Mysql:
 
         table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
 
-        sql = f'INSERT INTO `{table_name}` (`{fields_string}`) VALUES (' + ('%s,' * field_num)[:-1] + ')'
+        sql = f'{op} INTO `{table_name}` (`{fields_string}`) VALUES (' + ('%s,' * field_num)[:-1] + ')'
         try:
             self.cursor.executemany(sql, data)
             self.db.commit()
@@ -97,6 +98,9 @@ class Mysql:
             self.db.rollback()
             print(sql)
             raise e
+
+    def replace_many(self, table_name, fields, data, database_name=None):
+        return self.insert_many(table_name=table_name, fields=fields, data=data, database_name=database_name, op='REPLACE')
 
     def execute(self, sql):
         try:

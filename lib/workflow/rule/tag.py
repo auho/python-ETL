@@ -148,7 +148,7 @@ class TagRule:
         """
         field_list_select_string = ','.join([f"`{t}` AS `{ta}`" for t, ta in self._fieldsAlias.items()])
 
-        sql = f'SELECT {field_list_select_string} FROM {self._tableName}'
+        sql = f'SELECT {field_list_select_string} FROM {self._tableName} ORDER BY `keyword_len` DESC, `id` ASC'
         result = self._db.get_all(sql)
         self._tagRuleList = result
 
@@ -233,7 +233,7 @@ class TagRule:
         return self._tagsName + self._fixedName
 
     def _tag(self, content):
-        keywords = self._tag_keywords(content=content)
+        keywords = self._tag_content(content=content)
         if not keywords:
             return None
 
@@ -254,7 +254,7 @@ class TagRule:
             return False
 
         keyword = self._decide_sole_keyword(keywords_frequency=keywords_frequency)
-        item = (self._generate_keyword_insert_item(keyword=keyword),)
+        item = [self._generate_keyword_insert_item(keyword=keyword)]
 
         return item
 
@@ -273,7 +273,7 @@ class TagRule:
 
         return items
 
-    def _tag_keywords(self, content):
+    def _tag_content(self, content):
         """
         根据内容进行正则匹配，返回所有 keyword
 
@@ -330,18 +330,6 @@ class TagRule:
         keywords_frequency = {}
 
         for keyword in keywords:
-            is_contain = False
-            for k in keywords:
-                if keyword == k and len(keyword) >= len(k):
-                    continue
-
-                if keyword.find(k) > -1:
-                    is_contain = True
-                    break
-
-            if is_contain:
-                continue
-
             if keyword in keywords_frequency:
                 keywords_frequency[keyword] = keywords_frequency[keyword] + 1
             else:

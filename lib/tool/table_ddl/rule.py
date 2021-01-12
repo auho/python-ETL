@@ -25,7 +25,8 @@ class Table(TableDDl):
         self.DDLRule = mysql.DDLCreate(table_name='rule_' + self._tagName)
 
         self._add_fields(ddl_rule=self.DDLRule)
-        self.DDLRule.add_index(name=self._tagName + '_' + self.KeyWord)
+        self.DDLRule.add_int(name='keyword_len')
+        self.DDLRule.add_unique_index(name=self._tagName + '_' + self.KeyWord)
 
     def _generate_keys(self):
         fields = []
