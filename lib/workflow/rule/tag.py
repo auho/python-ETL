@@ -106,7 +106,7 @@ class TagRule:
             if not columns:
                 raise Exception('rule table columns is error!')
 
-            self._tagsName = [x for x in columns if x.find(self._name) == 0]
+            self._tagsName = [x for x in columns if x.find(self._name) == 0 and x != self._keywordName]
 
         if not self._tableName:
             raise Exception("table name IS ERROR!")
@@ -116,9 +116,6 @@ class TagRule:
 
         if not self._keywordFunList:
             self._keywordFunList = []
-
-        for tag_name in self._tagsName:
-            self._tagsDict[tag_name] = {}
 
         if self._databaseName:
             self._tableName = f"`{self._databaseName}`.`{self._tableName}`"
@@ -140,6 +137,9 @@ class TagRule:
 
         for name in self._fixed_tags.keys():
             self._fixedName.append(name)
+
+        for tag_name in self._tagsName:
+            self._tagsDict[tag_name] = {}
 
     def _get_tag_rule_list(self):
         """
@@ -164,6 +164,9 @@ class TagRule:
         group_regex_list = []
         for tag_rule in self._tagRuleList:
             keyword = tag_rule[self._keywordName].strip()
+            if not keyword:
+                continue
+
             is_all_en, keyword_regex = strict_en_fun(keyword=keyword)
 
             keyword_regex = filter_regex_syntax_fun(keyword)
@@ -186,7 +189,8 @@ class TagRule:
                 keyword_regex = f'(?P<{keyword}>{keyword_regex})'
                 group_regex_list.append(keyword_regex)
 
-        group_regex_list.append(f'(?P<{self._regexGroupName}>' + '|'.join(regex_list) + ')')
+        if regex_list:
+            group_regex_list.append(f'(?P<{self._regexGroupName}>' + '|'.join(regex_list) + ')')
 
         self._regexString = '|'.join(group_regex_list)
         self._pattern = re.compile(rf'{self._regexString}')
@@ -200,11 +204,7 @@ class TagRule:
         if not self._tagsName:
             return
 
-        assert_tag_name = None
-        for tag_name in self._tagsName:
-            if assert_tag_name is None:
-                assert_tag_name = tag_name
-                break
+        assert_tag_name = self._tagsName[0]
 
         for tag_rule in self._tagRuleList:
             tag_keyword = tag_rule[self._keywordName]
@@ -320,7 +320,8 @@ class TagRule:
         update_item = dict()
         update_item[self._keywordName] = keyword
         for tag_name in self._tagsName:
-            update_item[tag_name] = self._tagsDict[tag_name][keyword]
+            if keyword in self._tagsDict[tag_name]:
+                update_item[tag_name] = self._tagsDict[tag_name][keyword]
 
         return update_item
 
@@ -329,6 +330,18 @@ class TagRule:
         keywords_frequency = {}
 
         for keyword in keywords:
+            is_contain = False
+            for k in keywords:
+                if keyword == k and len(keyword) >= len(k):
+                    continue
+
+                if keyword.find(k) > -1:
+                    is_contain = True
+                    break
+
+            if is_contain:
+                continue
+
             if keyword in keywords_frequency:
                 keywords_frequency[keyword] = keywords_frequency[keyword] + 1
             else:

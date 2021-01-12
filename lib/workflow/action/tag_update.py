@@ -35,20 +35,25 @@ class Action(mysql.ActionUpdate):
         self._funcs.append(func_object)
 
     def do(self, item):
-        update_item = {self.id_name: item[self.id_name]}
+        try:
+            update_item = {self.id_name: item[self.id_name]}
 
-        is_update = False
-        for func_object in self._funcs:  # type: FuncUpdate
-            tag_item = func_object.update(item=item)
-            if not tag_item:
-                continue
+            is_update = False
+            for func_object in self._funcs:  # type: FuncUpdate
+                tag_item = func_object.update(item=item)
+                if not tag_item:
+                    continue
 
-            if type(tag_item) != dict:
-                print(tag_item, item)
-                raise Exception("function result is not dict!")
+                if type(tag_item) != dict:
+                    print(tag_item, item)
+                    raise Exception("function result is not dict!")
 
-            update_item.update(tag_item)
-            is_update = True
+                update_item.update(tag_item)
+                is_update = True
 
-        if is_update:
-            self.add_item(update_item)
+            if is_update:
+                self.add_item(update_item)
+
+        except Exception as e:
+            print(item)
+            raise e

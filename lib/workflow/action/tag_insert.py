@@ -21,7 +21,10 @@ class Action(mysql.ActionInsert):
             raise Exception('func is error!')
 
     def get_fields(self):
-        return self._fields
+        if self._additionFields:
+            return self._additionFields + self._func.get_fields()
+        else:
+            return self._func.get_fields()
 
     def add_func(self, func_object):
         if self._func:
@@ -34,18 +37,24 @@ class Action(mysql.ActionInsert):
         self._fields.extend(self._func.get_keys())
 
     def do(self, item):
-        insert_item = tuple()
-        if self._additionFields is not None:
-            for field in self._additionFields:
-                insert_item = insert_item + (item[field],)
+        try:
+            insert_item = tuple()
+            if self._additionFields is not None:
+                for field in self._additionFields:
+                    insert_item = insert_item + (item[field],)
 
-        tags = self._func.insert(item=item)
-        if not tags:
-            return
+            tags = self._func.insert(item=item)
+            if not tags:
+                return
 
-        if type(tags) != list:
-            print(tags, item)
-            raise Exception("func result is not tuple!")
+            if type(tags) != list:
+                print(tags, item)
+                raise Exception("func result is not tuple!")
 
-        for tag in tags:
-            self.add_item(insert_item + tag)
+            for tag in tags:
+                self.add_item(insert_item + tag)
+
+        except Exception as e:
+            print(self._fields)
+            print(item)
+            raise e

@@ -95,6 +95,7 @@ class Mysql:
             return True
         except Exception as e:
             self.db.rollback()
+            print(sql)
             raise e
 
     def execute(self, sql):
@@ -105,6 +106,7 @@ class Mysql:
             return True
         except Exception as e:
             self.db.rollback()
+            print(sql)
             raise e
 
     def drop(self, table_name, database_name=None):

@@ -3,11 +3,18 @@ from lib.db.ddl import mysql
 
 
 class Table(TableDDl):
+    KeyWord = 'keyword'
+
     def __init__(self, tag_name, tags=None):
         self._tagName = tag_name
-        self._tags = tags
+        self._tags = tags  # type:list
 
         self.DDLRule = None  # type: mysql.DDLBuild
+
+        if self._tags:
+            self._tags.append(self.KeyWord)
+        else:
+            self._tags = [self.KeyWord]
 
         self._init()
 
@@ -17,22 +24,22 @@ class Table(TableDDl):
     def _init(self):
         self.DDLRule = mysql.DDLCreate(table_name='rule_' + self._tagName)
 
-        self._add_fields(DDLRule=self.DDLRule)
-        self.DDLRule.add_unique_index(name=self._tagName + '_keyword')
+        self._add_fields(ddl_rule=self.DDLRule)
+        self.DDLRule.add_index(name=self._tagName + '_' + self.KeyWord)
 
     def _generate_keys(self):
-        fields = [
-            [mysql.T_STRING, self._tagName + '_keyword'],
-            [mysql.T_STRING, self._tagName + '_tag']
-        ]
+        fields = []
+        for key_name in self._tags:
+            if key_name:
+                key = self._tagName + '_' + key_name
+            else:
+                key = self._tagName
 
-        if self._tags:
-            for key_name in self._tags:
-                fields.append([mysql.T_STRING, self._tagName + '_' + key_name])
+            fields.append([mysql.T_STRING, key])
 
         return fields
 
-    def _add_fields(self, DDLRule):
+    def _add_fields(self, ddl_rule):
         fields = self._generate_keys()
         for field_item in fields:
-            DDLRule.add_field(field_item[0], field_item[1])
+            ddl_rule.add_field(field_item[0], field_item[1])

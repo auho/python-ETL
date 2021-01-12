@@ -1,4 +1,3 @@
-from .interface import TableDDl
 from . import rule
 from lib.db.ddl import mysql
 
@@ -21,5 +20,5 @@ class Table(rule.Table):
         self.DDLTagTable = mysql.DDLCreate(table_name='tag_' + self._sourceTableName + '_' + self._tagName)
 
         self.DDLTagTable.add_id(name=self._keyid)
-        self._add_fields(DDLRule=self.DDLTagTable)
+        self._add_fields(ddl_rule=self.DDLTagTable)
         self.DDLTagTable.add_int(name='keyword_num')

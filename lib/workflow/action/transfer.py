@@ -37,8 +37,6 @@ class Action(mysql.ActionInsert):
                 self.add_item(tuple(new_item))
 
         except Exception as e:
-            print(e)
             print(self._fields)
             print(item)
-            print(item.values())
-            exit(1)
+            raise e
