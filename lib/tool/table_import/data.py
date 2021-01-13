@@ -20,4 +20,9 @@ class XlsxImport:
         for item in self._df.values:
             data.append(tuple(item))
 
-        db.replace_many(table_name=table_name, fields=list(self._df.columns), data=data)
+        db.truncate(table_name=table_name)
+        db.insert_many(table_name=table_name, fields=list(self._df.columns), data=data)
+
+        self._df = None
+
+        print(f"data import done: {table_name} {len(data)}")

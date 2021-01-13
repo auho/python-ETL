@@ -310,7 +310,7 @@ class DispatchCenter:
 
         end_time_log = 'end' + ' ' + time.strftime('%Y-%m-%d %H:%M:%S')
 
-        print(start_time_log + '\n' + end_time_log)
+        print(start_time_log + '\n' + end_time_log + '\n\n')
 
     def _do_action_method(self, method_name, arg=None):
         if not arg:

@@ -63,7 +63,7 @@ class TagRule:
     """
 
     def __init__(self, db, name=None, complete_keyword_name=None, complete_tags_name=None, complete_table_name=None, alias=None,
-                 fixed_tags=None, keyword_fun_list=None, database_name=None):
+                 fixed_tags=None, exclude_tags=None, keyword_fun_list=None, database_name=None):
         """
 
         :param db: 数据库
@@ -73,6 +73,7 @@ class TagRule:
         :param complete_tags_name: 标签名称 ['tag1', 'tag2']
         :param alias: 标签别名 {'name':'alias'} name -> keyword table name； alias -> content table name
         :param fixed_tags: {name: vale}
+        :param exclude_tags:
         :param database_name:
         """
 
@@ -83,6 +84,7 @@ class TagRule:
         self._tagsName = complete_tags_name  # type: list
         self._alias = alias  # type: dict
         self._fixed_tags = fixed_tags  # type: dict
+        self._exclude_tags = exclude_tags  # type:list
         self._keywordFunList = keyword_fun_list  # type: list
         self._databaseName = database_name
 
@@ -132,6 +134,10 @@ class TagRule:
         self._keywordName = self._fieldsAlias[self._keywordName]
 
         for index, tag_name in enumerate(self._tagsName):
+            if self._exclude_tags and tag_name.replace(self._name + '_', '') in self._exclude_tags:
+                self._tagsName.pop(index)
+                continue
+
             self._fieldsAlias[tag_name] = self._get_alias(tag_name)
             self._tagsName[index] = self._fieldsAlias[tag_name]
 

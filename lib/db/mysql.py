@@ -38,8 +38,12 @@ class Mysql:
         return columns
 
     def get_all(self, sql):
-        self.cursor.execute(sql)
-        return self.cursor.fetchall()
+        try:
+            self.cursor.execute(sql)
+            return self.cursor.fetchall()
+        except Exception as e:
+            print(sql)
+            raise e
 
     def update_by_data(self, table_name, id_name, item, database_name=None):
         """

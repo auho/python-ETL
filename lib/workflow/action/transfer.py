@@ -12,6 +12,9 @@ class Action(mysql.ActionInsert):
     def init_action(self):
         self.fields = self._fields
 
+        print(f"action:: {self.table_name}")
+        print(f"func:: {self._func.__class__.__module__}.{self._func.__class__.__name__}")
+
     def check_action(self):
         if not self._func:
             raise Exception('func is error!')
@@ -25,6 +28,8 @@ class Action(mysql.ActionInsert):
 
         self._func = func_object
         self._fields.extend(self._func.get_keys())
+
+        self._fields = list(set(self._fields))
 
     def do(self, item):
         try:

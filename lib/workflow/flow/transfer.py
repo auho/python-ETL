@@ -20,7 +20,7 @@ class TagFlow:
         """
 
         fields = db.get_table_columns(table_name=table_name, database_name=database_name)
-        action = transfer.Action(db=db, table_name=tag_table_name, fields=fields, database_name=database_name, size=2000)
+        action = transfer.Action(db=db, table_name=tag_table_name, fields=fields.copy(), database_name=database_name, size=2000)
         action.add_func(func_object=func)
 
         dp = mysql.DataProvide(db=db, table_name=table_name, id_name=id_name, database_name=database_name, fields=fields, read_page_size=2000,

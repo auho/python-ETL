@@ -3,7 +3,7 @@ from lib.workflow.func.func import FuncInsert
 
 
 class Action(mysql.ActionInsert):
-    def __init__(self, db, table_name, database_name, size=1000, addition_fields=None, kwargs=None):
+    def __init__(self, db, table_name, addition_fields=None, database_name=None, size=1000, kwargs=None):
         super().__init__(db=db, table_name=table_name, fields=[], database_name=database_name, size=size, kwargs=kwargs)
 
         self._additionFields = addition_fields
@@ -15,6 +15,9 @@ class Action(mysql.ActionInsert):
 
     def init_action(self):
         self.fields = self._fields
+
+        print(f"action:: {self.table_name}")
+        print(f"func:: {self._func.__class__.__module__}.{self._func.__class__.__name__}")
 
     def check_action(self):
         if not self._func:

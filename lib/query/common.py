@@ -38,7 +38,7 @@ class BaseQuery:
         print("excel saved\n\n")
 
     def _create_excel(self, excel_name):
-        excel_name = excel_name.replace(' ', '_')
+        excel_name = excel_name.replace(' ', '_').replace('/', '_')
         self._excel_name = excel_name
         self._show_excel_info()
 

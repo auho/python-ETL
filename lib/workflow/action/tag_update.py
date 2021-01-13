@@ -15,7 +15,9 @@ class Action(mysql.ActionUpdate):
         self._funcs = []  # type: [FuncUpdate]
 
     def init_action(self):
-        pass
+        print(f"action:: {self.table_name}")
+        for func in self._funcs:
+            print(f"func:: {func.__class__.__module__}.{func.__class__.__name__}")
 
     def check_action(self):
         if not self._funcs:
