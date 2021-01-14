@@ -85,7 +85,7 @@ class BaseQuery:
 
         start_time = time.time()
 
-        db.cursor.execute(sql)
+        db.cursor.execute(sql=sql)
 
         end_time = time.time()
         duration_info += 'sql: ' + str(end_time - start_time) + ', '
@@ -116,7 +116,7 @@ class BaseQuery:
 
     @staticmethod
     def _execute_sql(sql, db):
-        return db.execute(sql)
+        return db.execute(sql=sql)
 
     @staticmethod
     def _execute_insert_many(table_name, fields, data, db, database_name=None):

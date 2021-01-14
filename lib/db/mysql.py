@@ -122,14 +122,24 @@ class Mysql:
 
         sql = f'DROP TABLE  IF EXISTS `{table_name}`'
 
-        return self.execute(sql)
+        return self.execute(sql=sql)
 
     def truncate(self, table_name, database_name=None):
         table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
 
         sql = f'TRUNCATE TABLE `{table_name}`'
 
-        return self.execute(sql)
+        return self.execute(sql=sql)
+
+    def copy(self, source_table_name, target_table_name, source_database_name=None, target_database_name=None):
+        self.drop(table_name=target_table_name, database_name=target_database_name)
+
+        source_table_name = self._generate_table_name(database_name=source_database_name, table_name=source_table_name)
+        target_table_name = self._generate_table_name(database_name=target_database_name, table_name=target_table_name)
+
+        sql = f"CREATE TABLE {target_table_name} LIKE {source_table_name}"
+
+        return self.execute(sql=sql)
 
     def _generate_update_sql(self, database_name, table_name, item, id_name):
         table_name = self._generate_table_name(database_name=database_name, table_name=table_name)

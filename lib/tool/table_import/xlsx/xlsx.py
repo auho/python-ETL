@@ -19,16 +19,13 @@ class XlsxImport:
 
         self._df = pandas.read_excel(self._xlsx, sheet_name=real_sheet_name, header=head)
 
-    def do_import(self, keyword_name, start, columns, fixed=None):
+    def _set_df(self, start, columns, fixed):
         self._df = self._df.iloc[start:, :len(columns)]
         self._df.columns = columns
-        self._df.drop_duplicates(subset=keyword_name, keep='first', inplace=True)
         self._df.fillna(value="", inplace=True)
         if fixed:
             for k, v in fixed.items():
                 self._df[k] = v
-
-        self._df['keyword_len'] = self._df.apply(lambda x: len(x[keyword_name]), axis=1)
 
     def save(self, db: Mysql, table_name, is_replace=False):
         data = []
@@ -43,4 +40,4 @@ class XlsxImport:
 
         self._df = None
 
-        print(f"rule import done: {table_name} {len(data)}")
+        print(f"xlsx import done: {table_name} {len(data)}")
