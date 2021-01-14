@@ -1,4 +1,5 @@
 import pandas, time, pathlib, os
+from lib.db.mysql import Mysql
 
 
 class BaseQuery:
@@ -85,7 +86,7 @@ class BaseQuery:
 
         start_time = time.time()
 
-        db.cursor.execute(sql=sql)
+        db.cursor.execute(sql)
 
         end_time = time.time()
         duration_info += 'sql: ' + str(end_time - start_time) + ', '
@@ -137,7 +138,7 @@ class CommonQuery(BaseQuery):
 
         self._basePath = app.basePath
         self.mysqlDbConf = app.mysqlDbConf
-        self.mysqlDb = app.mysqlDb
+        self.mysqlDb = app.mysqlDb  # type:Mysql
         self.DEBUG = app.DEBUG
         self.ENV_DEBUG = app.ENV_DEBUG
 

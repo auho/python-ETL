@@ -21,3 +21,11 @@ class Table:
     def add_id_unique(self, name, length=20):
         self.DDLTable.add_id(name=name, length=length)
         self.DDLTable.add_unique_index(name=name)
+
+    def add_string_index(self, name, length=20):
+        self.DDLTable.add_string(name=name, length=length)
+        self.DDLTable.add_index(name=name)
+
+    def add_string_unique(self, name, length=20):
+        self.DDLTable.add_string(name=name, length=length)
+        self.DDLTable.add_unique_index(name=name)

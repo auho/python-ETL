@@ -35,7 +35,7 @@ class PartConfig:
         self.parse(conf_name)
 
     @property
-    def mysqlDbConf(self):
+    def mysql_db_conf(self):
         return self._mysqlDbConf
 
 
@@ -43,6 +43,7 @@ class App:
     basePath = None
     mysqlDb = None
     mysqlDbConf = None
+    ENV = 'dev'
     DEBUG = True
     ENV_DEBUG = False
 
@@ -52,12 +53,11 @@ class App:
 
         self.basePath = base_path
 
-        self.mysqlDbConf = part_conf.mysqlDbConf
+        self.mysqlDbConf = part_conf.mysql_db_conf
         self.mysqlDb = mysql.Mysql(self.mysqlDbConf)  # type: mysql.Mysql
         self.mysqlDb.connect()
 
         self.DEBUG = bool(part_conf.get('debug'))
-
-        self.ENV_DEBUG = False
-        if part_conf.get('env') == 'dev':
+        self.ENV = part_conf.get('env')
+        if self.ENV == 'dev':
             self.ENV_DEBUG = True

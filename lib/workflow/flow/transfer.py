@@ -7,7 +7,7 @@ from lib.workflow.func.func import FuncTransfer
 
 class TagFlow:
     @staticmethod
-    def flow(db: Mysql, table_name, tag_table_name, id_name, func: FuncTransfer, database_name=None):
+    def flow(db: Mysql, table_name, tag_table_name, id_name, func: FuncTransfer, exclude_fields=None, database_name=None):
         """
 
         :param db:
@@ -15,12 +15,18 @@ class TagFlow:
         :param id_name:
         :param tag_table_name:
         :param func:
+        :param exclude_fields:
         :param database_name:
         :return:
         """
 
         fields = db.get_table_columns(table_name=table_name, database_name=database_name)
-        action = transfer.Action(db=db, table_name=tag_table_name, fields=fields.copy(), database_name=database_name, size=2000)
+
+        action_fields = fields.copy()
+        if exclude_fields:
+            action_fields = list(set(action_fields) - set(exclude_fields))
+
+        action = transfer.Action(db=db, table_name=tag_table_name, fields=action_fields, database_name=database_name, size=2000)
         action.add_func(func_object=func)
 
         dp = mysql.DataProvide(db=db, table_name=table_name, id_name=id_name, database_name=database_name, fields=fields, read_page_size=2000,

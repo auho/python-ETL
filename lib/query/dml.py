@@ -11,7 +11,7 @@ class Model:
 
     @staticmethod
     def _parse_field_exp(field_exp, prefix):
-        return re.sub(r'(`\w)', rf'`{prefix}`.\1', field_exp)
+        return re.sub(r'([^.])(`\w+`)([^.])', rf'\1`{prefix}`.\2\3', field_exp)
 
 
 class Table(Model):
@@ -71,8 +71,14 @@ class Table(Model):
 
     def parse(self):
         if self._select:
-            for select in self._select:
-                self.select_list.append(f"`{self._table_name}`.`{select}`")
+            if self._select == '*':
+                self.select_list.append(f"`{self._table_name}`.*")
+            else:
+                for select in self._select:
+                    if select == '*':
+                        self.select_list.append(f"`{self._table_name}`.*")
+                    else:
+                        self.select_list.append(f"`{self._table_name}`.`{select}`")
 
         if self._group_fields is not None:
             for k in self._group_fields:
@@ -101,6 +107,9 @@ class Table(Model):
             table_name = f"({self.table_sql}) AS `{self._table_name}`"
 
         return table_name
+
+    def sql(self):
+        return TableJoin().table(table=self).sql()
 
 
 class TableJoin(Model):
