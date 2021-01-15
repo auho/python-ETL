@@ -80,7 +80,7 @@ class DDLAlter(DDLBuild):
 class DDLGenerate:
     @staticmethod
     def create(table_name):
-        return f"CREATE TABLE `{table_name}` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT) ENGINE = `MyISAM`"
+        return f"CREATE TABLE `{table_name}` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT) ENGINE = `MyISAM` DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci"
 
     @staticmethod
     def alter_id(table_name, name, length=20):
