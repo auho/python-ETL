@@ -10,6 +10,16 @@ class Func(metaclass=ABCMeta):
     pass
 
 
+class FuncVoid(Func):
+    @abstractmethod
+    def get_fields(self):
+        pass
+
+    @abstractmethod
+    def do(self, item):
+        pass
+
+
 class FuncTransfer(Func):
     @abstractmethod
     def get_keys(self):
@@ -22,15 +32,15 @@ class FuncTransfer(Func):
 
 class FuncInsert(Func):
     @abstractmethod
-    def insert(self, item):
-        pass
-
-    @abstractmethod
     def get_keys(self):
         pass
 
     @abstractmethod
     def get_fields(self):
+        pass
+
+    @abstractmethod
+    def insert(self, item):
         pass
 
 
@@ -46,13 +56,13 @@ class FuncUpdate(Func):
 
 class FuncMulti(Func):
     @abstractmethod
-    def do(self, item):
-        pass
-
-    @abstractmethod
     def get_keys(self):
         pass
 
     @abstractmethod
     def get_fields(self):
+        pass
+
+    @abstractmethod
+    def do(self, item):
         pass
