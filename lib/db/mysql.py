@@ -46,29 +46,38 @@ class Mysql:
             raise e
 
     def update_by_data(self, table_name, id_name, item, database_name=None):
-        """
+        try:
+            res = self._update_by_data(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
+            self.db.commit()
 
-        :param table_name:
-        :param id_name:
-        :param item:
-        :param database_name:
-        :return:
-        """
-
-        sql = self._generate_update_sql(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
-
-        return self.execute(sql=sql)
+            return res
+        except Exception as e:
+            self.db.rollback()
+            print(table_name, id_name, item)
+            raise e
 
     def update_many(self, table_name, id_name, items, database_name=None):
+        item = []
         try:
             for item in items:
-                sql = self._generate_update_sql(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
+                self._update_by_data(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
 
-                self.cursor.execute(sql)  # 执行sql语句
-
-            self.db.commit()  # 提交到数据库执行
+            self.db.commit()
         except Exception as e:
-            self.db.rollback()  # 发生错误后回滚
+            self.db.rollback()
+            print(table_name, id_name, item)
+            raise e
+
+    def insert(self, table_name, data: dict, database_name=None, op='INSERT'):
+        sql = self._generate_insert_sql(table_name=table_name, fields=data.keys(), database_name=database_name, op=op)
+        try:
+            self.cursor.execute(sql, tuple(data.values()))
+            self.db.commit()
+
+            return True
+        except Exception as e:
+            self.db.rollback()
+            print(sql)
             raise e
 
     def insert_many(self, table_name, fields, data, database_name=None, op='INSERT'):
@@ -87,12 +96,7 @@ class Mysql:
         if not data:
             return False
 
-        fields_string = '`, `'.join(fields)
-        field_num = len(fields)
-
-        table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
-
-        sql = f'{op} INTO `{table_name}` (`{fields_string}`) VALUES (' + ('%s,' * field_num)[:-1] + ')'
+        sql = self._generate_insert_sql(table_name=table_name, fields=fields, database_name=database_name, op=op)
         try:
             self.cursor.executemany(sql, data)
             self.db.commit()
@@ -102,6 +106,9 @@ class Mysql:
             self.db.rollback()
             print(sql)
             raise e
+
+    def replace(self, table_name, data: dict, database_name=None):
+        return self.insert(table_name=table_name, data=data, database_name=database_name, op='REPLACE')
 
     def replace_many(self, table_name, fields, data, database_name=None):
         return self.insert_many(table_name=table_name, fields=fields, data=data, database_name=database_name, op='REPLACE')
@@ -141,28 +148,30 @@ class Mysql:
 
         return self.execute(sql=sql)
 
-    def _generate_update_sql(self, database_name, table_name, item, id_name):
+    def _generate_insert_sql(self, table_name, fields, database_name=None, op='INSERT'):
+        table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
+        fields_string = '`, `'.join(fields)
+        field_num = len(fields)
+
+        return f'{op} INTO `{table_name}` (`{fields_string}`) VALUES (' + ('%s,' * field_num)[:-1] + ')'
+
+    def _update_by_data(self, database_name, table_name, item, id_name):
         table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
 
-        # 拼接 update sql
         sql = f'UPDATE `{table_name}` SET '
-        where = ''
         fields = []
+        fields_data = tuple()
         for key, value in item.items():
-
-            if isinstance(value, str):
-                value_string = f"'{value}'"
-            elif isinstance(value, int):
-                value_string = f"{str(value)}"
-            else:
-                value_string = f"{value}"
-
             if key == id_name:
-                where = f" WHERE `{id_name}` = {value_string}"
-            else:
-                fields.append(f"`{key}` = {value_string}")
+                continue
 
-        return sql + ', '.join(fields) + where
+            fields.append(f"`{key}` = %s")
+            fields_data = fields_data + (value,)
+
+        fields_data = fields_data + (item[id_name],)
+        sql = sql + ', '.join(fields) + f" WHERE `{id_name}` = %s"
+
+        return self.cursor.execute(sql, fields_data)
 
     @staticmethod
     def _generate_table_name(database_name, table_name):

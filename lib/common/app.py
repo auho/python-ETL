@@ -61,3 +61,12 @@ class App:
         self.ENV = part_conf.get('env')
         if self.ENV == 'dev':
             self.ENV_DEBUG = True
+
+    def get_data_file_path(self, file):
+        return self.get_data_path() + '/' + file
+
+    def get_data_path(self):
+        return self.basePath + '/data'
+
+    def get_conf_path(self):
+        return self.basePath + '/conf'
