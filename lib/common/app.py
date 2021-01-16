@@ -70,7 +70,7 @@ class App:
     def _init_info(self):
         print("=" * 50)
         print("=" * 2 + f" MODULE PATH:: {self.modulePath}")
-        print("=" * 2 + f" FILE PATH:: {sys.argv}")
+        print("=" * 2 + f" FILE PATH:: {' '.join(sys.argv)}")
         print(f" config file: {self.configName}")
         print(f" db:: {self.mysqlDbConf['db']}")
         print(f" debug:: {str(int(self.DEBUG))}")
