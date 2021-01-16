@@ -47,43 +47,29 @@ class Mysql:
             self.cursor.execute(sql)
             return self.cursor.fetchall()
         except Exception as e:
-            print(sql)
+            self._error(sql=sql)
             raise e
 
     def update_by_data(self, table_name, id_name, item, database_name=None):
-        try:
-            res = self._update_by_data(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
-            self.db.commit()
-
-            return res
-        except Exception as e:
-            self.db.rollback()
-            print(table_name, id_name, item)
-            raise e
+        res = self._update_prepare(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
+        return self.execute(*res)
 
     def update_many(self, table_name, id_name, items, database_name=None):
-        item = []
+        res = []
         try:
             for item in items:
-                self._update_by_data(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
+                res = self._update_prepare(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
+                self.cursor.execute(*res)
 
             self.db.commit()
         except Exception as e:
             self.db.rollback()
-            print(table_name, id_name, item)
+            self._error(*res)
             raise e
 
     def insert(self, table_name, data: dict, database_name=None, op='INSERT'):
         sql = self._generate_insert_sql(table_name=table_name, fields=data.keys(), database_name=database_name, op=op)
-        try:
-            self.cursor.execute(sql, tuple(data.values()))
-            self.db.commit()
-
-            return True
-        except Exception as e:
-            self.db.rollback()
-            print(sql)
-            raise e
+        return self.execute(sql=sql, args=tuple(data.values()))
 
     def insert_many(self, table_name, fields, data, database_name=None, op='INSERT'):
         """
@@ -109,7 +95,7 @@ class Mysql:
             return True
         except Exception as e:
             self.db.rollback()
-            print(sql)
+            self._error(sql=sql)
             raise e
 
     def replace(self, table_name, data: dict, database_name=None):
@@ -118,15 +104,15 @@ class Mysql:
     def replace_many(self, table_name, fields, data, database_name=None):
         return self.insert_many(table_name=table_name, fields=fields, data=data, database_name=database_name, op='REPLACE')
 
-    def execute(self, sql):
+    def execute(self, sql, args=None):
         try:
-            self.cursor.execute(query=sql)
+            self.cursor.execute(query=sql, args=args)
             self.db.commit()
 
             return True
         except Exception as e:
             self.db.rollback()
-            print(sql)
+            self._error(sql=sql, data=args)
             raise e
 
     def drop(self, table_name, database_name=None):
@@ -160,7 +146,7 @@ class Mysql:
 
         return f'{op} INTO `{table_name}` (`{fields_string}`) VALUES (' + ('%s,' * field_num)[:-1] + ')'
 
-    def _update_by_data(self, database_name, table_name, item, id_name):
+    def _update_prepare(self, database_name, table_name, item, id_name):
         table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
 
         sql = f'UPDATE `{table_name}` SET '
@@ -176,7 +162,7 @@ class Mysql:
         fields_data = fields_data + (item[id_name],)
         sql = sql + ', '.join(fields) + f" WHERE `{id_name}` = %s"
 
-        return self.cursor.execute(sql, fields_data)
+        return sql, fields_data
 
     @staticmethod
     def _generate_table_name(database_name, table_name):
@@ -184,3 +170,7 @@ class Mysql:
             table_name = database_name + '`.`' + table_name
 
         return table_name
+
+    @staticmethod
+    def _error(sql, data=None):
+        print(f"ERROR SQL:: {sql}", data)

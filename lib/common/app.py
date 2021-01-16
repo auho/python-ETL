@@ -1,6 +1,6 @@
 import argparse
 import yaml
-
+import sys
 from lib.db import mysql
 
 parser = argparse.ArgumentParser()
@@ -9,30 +9,22 @@ input_args = parser.parse_args()
 
 
 class PartConfig:
-    def __init__(self, base_path):
+    def __init__(self):
         self._mysqlDbConf = {}
         self._yamlConfig = None
-        self._basePath = base_path
 
-    def parse(self, conf_name):
-        self._init_yaml(conf_name)
-
+    def parse(self, conf_name, module_path):
+        self._parse_yaml(conf_name, module_path)
         self._mysqlDbConf = self.get('mysql')
 
     def get(self, name):
         return self._yamlConfig[name]
 
-    def _init_yaml(self, conf_name):
-        print(f'config file: {conf_name}')
-
-        yaml_file = self._basePath + f"/conf/db_{conf_name}"
+    def _parse_yaml(self, conf_name, module_path):
+        yaml_file = module_path + f"/conf/db_{conf_name}.yml"
         f = open(yaml_file, 'r', encoding='utf-8')
         yaml_content = f.read()
         self._yamlConfig = yaml.safe_load(yaml_content)
-
-    def init_all(self, conf_name):
-        conf_name = f'{conf_name}.yml'
-        self.parse(conf_name)
 
     @property
     def mysql_db_conf(self):
@@ -40,18 +32,20 @@ class PartConfig:
 
 
 class App:
-    basePath = None
+    modulePath = None
+    configName = None
     mysqlDb = None
     mysqlDbConf = None
     ENV = 'dev'
     DEBUG = True
     ENV_DEBUG = False
 
-    def __init__(self, base_path):
-        part_conf = PartConfig(base_path=base_path)  # type:PartConfig
-        part_conf.init_all(input_args.config)
+    def __init__(self, module_path):
+        self.modulePath = module_path
+        self.configName = input_args.config
 
-        self.basePath = base_path
+        part_conf = PartConfig()  # type:PartConfig
+        part_conf.parse(conf_name=input_args.config, module_path=module_path)
 
         self.mysqlDbConf = part_conf.mysql_db_conf
         self.mysqlDb = mysql.Mysql(self.mysqlDbConf)  # type: mysql.Mysql
@@ -62,11 +56,24 @@ class App:
         if self.ENV == 'dev':
             self.ENV_DEBUG = True
 
+        self._init_info()
+
     def get_data_file_path(self, file):
         return self.get_data_path() + '/' + file
 
     def get_data_path(self):
-        return self.basePath + '/data'
+        return self.modulePath + '/data'
 
     def get_conf_path(self):
-        return self.basePath + '/conf'
+        return self.modulePath + '/conf'
+
+    def _init_info(self):
+        print("=" * 50)
+        print("=" * 2 + f" MODULE PATH:: {self.modulePath}")
+        print("=" * 2 + f" FILE PATH:: {sys.argv}")
+        print(f" config file: {self.configName}")
+        print(f" db:: {self.mysqlDbConf['db']}")
+        print(f" debug:: {str(int(self.DEBUG))}")
+        print(f" env_debug:: {str(int(self.ENV_DEBUG))}")
+        print("=" * 50)
+        print("\n")

@@ -136,20 +136,11 @@ class CommonQuery(BaseQuery):
     def __init__(self, app):
         super().__init__()
 
-        self._basePath = app.basePath
+        self._basePath = app.modulePath
         self.mysqlDbConf = app.mysqlDbConf
         self.mysqlDb = app.mysqlDb  # type:Mysql
         self.DEBUG = app.DEBUG
         self.ENV_DEBUG = app.ENV_DEBUG
-
-        self._log_init()
-
-    def _log_init(self):
-        print("base path:: " + self._basePath)
-        print("db:: " + self.mysqlDbConf['db'])
-        print("debug:: " + str(int(self.DEBUG)))
-        print("env_debug:: " + str(int(self.ENV_DEBUG)))
-        print("\n")
 
     def init(self, excel_name):
         self._create_excel(excel_name)
