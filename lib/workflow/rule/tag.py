@@ -48,15 +48,6 @@ def filter_regex_syntax_fun(keyword):
     return keyword
 
 
-"""
-rule = tag.TagRule(db=db, table_name='rule_one',
-                   keyword_name='one_tag_keyword',
-                   tags_name=['one_tag'],
-                   alias={'keyword_table_name': 'content_table_name'},
-                   keyword_fun_list=[tag.symbol_underline_fun])
-"""
-
-
 class TagRule:
     """
     单字段打标签

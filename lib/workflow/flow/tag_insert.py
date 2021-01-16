@@ -21,18 +21,6 @@ class TagFlow:
 
     @staticmethod
     def flow(db, table_name, id_name, tag_table_name, func: FuncInsert, addition_fields, database_name=None):
-        """
-
-        :param db:
-        :param table_name:
-        :param id_name:
-        :param tag_table_name:
-        :param func:
-        :param addition_fields:
-        :param database_name:
-        :return:
-        """
-
         fields = [id_name]
 
         action = tag_insert.Action(db=db, table_name=tag_table_name, addition_fields=addition_fields, database_name=database_name)

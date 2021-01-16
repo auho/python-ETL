@@ -21,6 +21,11 @@ class Mysql:
         self.cursor.close()
         self.db.close()
 
+    def create_database(self, name):
+        sql = f"CREATE DATABASE IF NOT EXISTS {name} DEFAULT CHARACTER SET `utf8mb4` COLLATE `utf8mb4_general_ci`;"
+
+        return self.execute(sql=sql)
+
     def get_table_columns(self, table_name, database_name=None):
         if database_name is None:
             database_name = self.databaseName
@@ -127,7 +132,7 @@ class Mysql:
     def drop(self, table_name, database_name=None):
         table_name = self._generate_table_name(database_name=database_name, table_name=table_name)
 
-        sql = f'DROP TABLE  IF EXISTS `{table_name}`'
+        sql = f'DROP TABLE IF EXISTS `{table_name}`'
 
         return self.execute(sql=sql)
 

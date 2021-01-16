@@ -8,18 +8,6 @@ from lib.workflow.func.func import FuncTransfer
 class TagFlow:
     @staticmethod
     def flow(db: Mysql, table_name, tag_table_name, id_name, func: FuncTransfer, exclude_fields=None, database_name=None):
-        """
-
-        :param db:
-        :param table_name:
-        :param id_name:
-        :param tag_table_name:
-        :param func:
-        :param exclude_fields:
-        :param database_name:
-        :return:
-        """
-
         fields = db.get_table_columns(table_name=table_name, database_name=database_name)
 
         action_fields = fields.copy()

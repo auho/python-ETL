@@ -7,16 +7,6 @@ from lib.workflow.func.func import FuncUpdate
 class TagFlow:
     @staticmethod
     def flow(db, table_name, id_name, funcs, database_name=None):
-        """
-
-        :param db:
-        :param table_name:
-        :param id_name:
-        :param funcs:
-        :param database_name:
-        :return:
-        """
-
         if type(funcs) is not list:
             raise Exception("tag rules is not list")
 

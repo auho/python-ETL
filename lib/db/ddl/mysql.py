@@ -1,12 +1,16 @@
+from abc import ABCMeta, abstractmethod
+from lib.db.mysql import Mysql
+
 T_Id = 'id'
 T_STRING = 'string'
 T_INT = 'int'
 
 
-class DDLBuild:
-    def __init__(self, table_name):
+class DDLBuild(metaclass=ABCMeta):
+    def __init__(self, table_name, database_name=None):
         self._sqlList = []
         self._tableName = table_name
+        self._databaseName = database_name
         self._DDL = DDLGenerate()
 
     def add_table(self):
@@ -42,6 +46,7 @@ class DDLBuild:
         sql = self._DDL.alter_unique_index(table_name=self._tableName, name=name)
         self._add_sql(sql=sql)
 
+    @abstractmethod
     def build(self, db):
         pass
 
@@ -50,7 +55,6 @@ class DDLBuild:
             try:
                 db.execute(sql=sql)
             except Exception as e:
-                print(sql)
                 print(e)
 
     def _add_sql(self, sql):
@@ -58,20 +62,20 @@ class DDLBuild:
 
 
 class DDLCreate(DDLBuild):
-    def __init__(self, table_name):
-        super().__init__(table_name=table_name)
+    def __init__(self, table_name, database_name=None):
+        super().__init__(table_name=table_name, database_name=database_name)
 
         self.add_table()
 
-    def build(self, db):
-        db.execute(sql=f'DROP TABLE IF EXISTS `{self._tableName}`')
+    def build(self, db: Mysql):
+        db.drop(table_name=self._tableName)
 
         self._execute_ddl(db=db)
 
 
 class DDLAlter(DDLBuild):
-    def __init__(self, table_name):
-        super().__init__(table_name=table_name)
+    def __init__(self, table_name, database_name=None):
+        super().__init__(table_name=table_name, database_name=database_name)
 
     def build(self, db):
         self._execute_ddl(db=db)
