@@ -20,10 +20,11 @@ class TagFlow:
         process.DispatchCenter.dispatch(dp=dp, actions=actions)
 
     @staticmethod
-    def flow(db, table_name, id_name, tag_table_name, func: FuncInsert, addition_fields, database_name=None):
+    def flow(db, table_name, id_name, tag_table_name, func: FuncInsert, addition_fields, addition_dict=None, database_name=None):
         fields = [id_name]
 
-        action = tag_insert.Action(db=db, table_name=tag_table_name, addition_fields=addition_fields, database_name=database_name)
+        action = tag_insert.Action(db=db, table_name=tag_table_name, addition_fields=addition_fields, addition_dict=addition_dict,
+                                   database_name=database_name)
         action.add_func(func_object=func)
 
         fields.extend(action.get_fields())
