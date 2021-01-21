@@ -4,7 +4,7 @@ from lib.db.ddl import mysql
 
 class Table(TableDDl):
     def __init__(self, table_name, content_name, keyid, suffix='words'):
-        self._sourceTableName = table_name + "_" + content_name
+        self._tableName = table_name + "_" + content_name
         self._keyid = keyid
         self._suffix = suffix
         self.DDLTable = None  # type: mysql.DDLBuild
@@ -15,7 +15,7 @@ class Table(TableDDl):
         self.DDLTable.build(db=db)
 
     def _init(self):
-        self.DDLTable = mysql.DDLCreate(table_name=self._sourceTableName + '_' + self._suffix)
+        self.DDLTable = mysql.DDLCreate(table_name=self._tableName + '_' + self._suffix)
 
         self.DDLTable.add_id(name=self._keyid)
         self.DDLTable.add_string(name='word', length=30)

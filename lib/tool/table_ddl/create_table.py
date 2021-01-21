@@ -3,7 +3,7 @@ from lib.db.ddl import mysql
 
 class Table:
     def __init__(self, table_name):
-        self._sourceTableName = table_name
+        self._tableName = table_name
         self.DDLTable = None  # type: mysql.DDLBuild
 
         self._init()
@@ -12,7 +12,7 @@ class Table:
         self.DDLTable.build(db=db)
 
     def _init(self):
-        self.DDLTable = mysql.DDLCreate(table_name=self._sourceTableName)
+        self.DDLTable = mysql.DDLCreate(table_name=self._tableName)
 
     def add_id_index(self, name, length=20):
         self.DDLTable.add_id(name=name, length=length)

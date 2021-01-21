@@ -4,7 +4,7 @@ from lib.db.ddl import mysql
 
 class Table(rule.Table):
     def __init__(self, table_name, keyid, tag_name, tags=None):
-        self._sourceTableName = table_name
+        self._tableName = table_name
         self._keyid = keyid
 
         self.DDLRule = None  # type: mysql.DDLBuild
@@ -17,7 +17,7 @@ class Table(rule.Table):
         super(Table, self).build(db=db)
 
     def _init(self):
-        self.DDLTagTable = mysql.DDLCreate(table_name='tag_' + self._sourceTableName + '_' + self._tagName)
+        self.DDLTagTable = mysql.DDLCreate(table_name='tag_' + self._tableName + '_' + self._tagName)
 
         self.DDLTagTable.add_id(name=self._keyid)
         self._add_fields(ddl_rule=self.DDLTagTable)
