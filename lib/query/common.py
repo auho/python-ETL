@@ -107,7 +107,7 @@ class BaseQuery:
         end_time = time.time()
         duration_info += 'create df: ' + str(end_time - end_time) + " ]\n"
 
-        print(duration_info)
+        print(f" total: {len(res)}" + duration_info)
 
         return df
 

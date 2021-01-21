@@ -19,15 +19,16 @@ class Table(Model):
     保存格式化 table 信息，方便组成 sql
     """
 
-    def __init__(self, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_dict=None, order_dict=None, limit='',
-                 join_on=None, table_sql=None):
+    def __init__(self, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias_dict=None, order_dict=None,
+                 limit='', join_on=None, table_sql=None):
         """
 
         :param table_name: left join table name
+        :param select: str|dict|list
         :param where: 字符串
         :param group_fields: [key name]
         :param aggregation_dict: {'COUNT(*)': '评论量'}
-        :param group_dict: 分组字典 key name:key title
+        :param group_alias_dict: 分组字典 key name:key title
         :param order_dict: 分组字典 key name:key sort
         :param join_on: 全条件 `theme`.`theme_id` = `comment`.`theme_id`
         :param table_sql: 直接使用 sql 结果作为表，表名为 table_name
@@ -42,7 +43,7 @@ class Table(Model):
         self.where = where  # type:str
         self._group_fields = group_fields  # type:list
         self._aggregation_dict = aggregation_dict  # type:dict
-        self._group_dict = group_dict  # type:dict
+        self._group_alias_dict = group_alias_dict  # type:dict
         self._order_dict = order_dict  # type:dict
         self.limit = limit
         self.join_on = join_on
@@ -66,28 +67,43 @@ class Table(Model):
         if not self._group_fields:
             self.group_list = []
 
-        if not self._group_dict:
-            self._group_dict = dict()
+        if not self._group_alias_dict:
+            self._group_alias_dict = dict()
 
     def parse(self):
         if self._select:
-            if self._select == '*':
-                self.select_list.append(f"`{self._table_name}`.*")
-            else:
+            if type(self._select) == str:
+                if self._select == '*':
+                    self.select_list.append(f"`{self._table_name}`.*")
+                else:
+                    self.select_list.append(self._parse_field_exp(self.select_list, self._table_name))
+            elif type(self._select) == dict:
+                for k, v in self._select.items():
+                    self.select_list.append(f"{self._parse_field_exp(k, self._table_name)} AS '{v}'")
+            elif type(self._select) == list:
                 for select in self._select:
                     if select == '*':
                         self.select_list.append(f"`{self._table_name}`.*")
                     else:
-                        self.select_list.append(f"`{self._table_name}`.`{select}`")
+                        self.select_list.append(self._parse_field_exp(f"`{select}`", self._table_name))
+            else:
+                print(self._select)
+                raise Exception(f"{self._table_name} select is error!")
+
+        if self.where:
+            self.where = self._parse_field_exp(self.where, self._table_name)
 
         if self._group_fields is not None:
             for k in self._group_fields:
                 key = f"`{self._table_name}`.`{k}`"
 
-                if k in self._group_dict:
-                    self.select_list.append(f"{key} AS '{self._group_dict[k]}'")
+                if k in self._group_alias_dict:
+                    if k == self._group_alias_dict[k]:
+                        self.select_list.append(key)
+                    else:
+                        self.select_list.append(f"{key} AS '{self._group_alias_dict[k]}'")
                 else:
-                    self.select_list.append(f"{key}")
+                    self.select_list.append(key)
 
                 self.group_list.append(key)
 
