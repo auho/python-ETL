@@ -164,10 +164,15 @@ class TagRule:
             if not keyword:
                 continue
 
+            """
+            把规则变成字典，方便后续根据 keyword 查找 tag
+            """
+            for tag_name in self._tagsName:
+                if keyword not in self._tagsDict[tag_name]:
+                    self._tagsDict[tag_name][keyword] = tag_rule[tag_name]
+
             is_all_en, keyword_regex = strict_en_fun(keyword=keyword)
-
             keyword_regex = filter_regex_syntax_fun(keyword)
-
             if not is_all_en:
                 if self._keywordFunList:
                     for keyword_fun in self._keywordFunList:
@@ -191,24 +196,6 @@ class TagRule:
 
         self._regexString = '|'.join(group_regex_list)
         self._pattern = re.compile(rf'{self._regexString}')
-
-    def _generate_tags_dict(self):
-        """
-        把规则变成字典，方便后续根据 keyword 查找 tag
-        :return:
-        """
-
-        if not self._tagsName:
-            return
-
-        assert_tag_name = self._tagsName[0]
-
-        for tag_rule in self._tagRuleList:
-            tag_keyword = tag_rule[self._keywordName]
-
-            if tag_keyword not in self._tagsDict[assert_tag_name]:
-                for tag_name in self._tagsName:
-                    self._tagsDict[tag_name][tag_keyword] = tag_rule[tag_name]
 
     def _get_alias(self, tag_name):
         if tag_name in self._alias:
@@ -270,6 +257,27 @@ class TagRule:
 
         return items
 
+    def _tag_multi_insert_combine_same_tags(self, content):
+        keywords_frequency = self._tag(content=content)
+        if not keywords_frequency:
+            return False
+
+        all_items = {}
+        for keyword, num in keywords_frequency.items():
+            tags = self._get_all_tags_by_keyword(keyword=keyword)
+            tags_string = ''.join(tags)
+            keyword_num = keyword + ' ' + str(num)
+            if tags_string in all_items:
+                all_items[tags_string][0].append(keyword_num)
+            else:
+                all_items[tags_string] = [[keyword_num], tags]
+
+        items = []
+        for item in all_items.values():
+            items.append((','.join(item[0]),) + item[1])
+
+        return items
+
     def _tag_content(self, content):
         """
         根据内容进行正则匹配，返回所有 keyword
@@ -300,16 +308,12 @@ class TagRule:
         return keywords
 
     def _generate_keyword_num_insert_item(self, keyword, num):
-        tag_item = (keyword, num)
-        for tag_name in self._tagsName:
-            tag_item = tag_item + (self._tagsDict[tag_name][keyword],)
+        tag_item = (keyword, num) + self._get_all_tags_by_keyword(keyword=keyword)
 
         return self._add_fixed_tags_values(item=tag_item)
 
     def _generate_keyword_insert_item(self, keyword):
-        tag_item = (keyword,)
-        for tag_name in self._tagsName:
-            tag_item = tag_item + (self._tagsDict[tag_name][keyword],)
+        tag_item = (keyword,) + self._get_all_tags_by_keyword(keyword=keyword)
 
         return self._add_fixed_tags_values(item=tag_item)
 
@@ -333,6 +337,13 @@ class TagRule:
                 keywords_frequency[keyword] = 1
 
         return keywords_frequency
+
+    def _get_all_tags_by_keyword(self, keyword):
+        tag_item = tuple()
+        for tag_name in self._tagsName:
+            tag_item = tag_item + (self._tagsDict[tag_name][keyword],)
+
+        return tag_item
 
     @staticmethod
     def _decide_multi_keywords(keywords_frequency):
@@ -392,4 +403,3 @@ class TagRule:
 
         self._get_tag_rule_list()
         self._generate_regex()
-        self._generate_tags_dict()

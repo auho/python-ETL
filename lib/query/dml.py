@@ -11,7 +11,7 @@ class Model:
 
     @staticmethod
     def _parse_field_exp(field_exp, prefix):
-        return re.sub(r'([^.])(`\w+`)([^.])', rf'\1`{prefix}`.\2\3', field_exp)
+        return re.sub(r'([^.])(`[^`.]+`)([^.])', rf'\1`{prefix}`.\2\3', f" {field_exp} ").strip()
 
 
 class Table(Model):
@@ -76,7 +76,7 @@ class Table(Model):
                 if self._select == '*':
                     self.select_list.append(f"`{self._table_name}`.*")
                 else:
-                    self.select_list.append(self._parse_field_exp(self.select_list, self._table_name))
+                    self.select_list.append(self._parse_field_exp(self._select, self._table_name))
             elif type(self._select) == dict:
                 for k, v in self._select.items():
                     self.select_list.append(f"{self._parse_field_exp(k, self._table_name)} AS '{v}'")
@@ -167,7 +167,15 @@ class TableJoin(Model):
 
     def select(self, select):
         if select:
-            self._select_list.extend(select)
+            if type(select) == str:
+                self._select_list.append(select)
+            elif type(select) == list:
+                self._select_list.extend(select)
+            elif type(select) == dict:
+                for k, v in select.items():
+                    self._select_list.append(f"{k} AS {v}")
+            else:
+                raise Exception("table join select is error")
 
     def _select_string(self):
         if self._select_list:
