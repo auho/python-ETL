@@ -107,6 +107,8 @@ class TagRule:
         if not self._keywordName:
             raise Exception("keyword filed name IS ERROR!")
 
+        self._name = self._keywordName.replace('_keyword', '')
+
         if not self._keywordFunList:
             self._keywordFunList = []
 
@@ -242,10 +244,7 @@ class TagRule:
 
         return item
 
-    def _tag_multi_insert(self, content):
-        """
-        返回多条
-        """
+    def _tag_multi_all_insert(self, content):
         keywords_frequency = self._tag(content=content)
         if not keywords_frequency:
             return False
@@ -257,7 +256,10 @@ class TagRule:
 
         return items
 
-    def _tag_multi_insert_combine_same_tags(self, content):
+    def _tag_multi_insert(self, content):
+        """
+        combine same tags
+        """
         keywords_frequency = self._tag(content=content)
         if not keywords_frequency:
             return False
@@ -274,7 +276,7 @@ class TagRule:
 
         items = []
         for item in all_items.values():
-            items.append((','.join(item[0]),) + item[1])
+            items.append((','.join(item[0]), len(item[0])) + item[1])
 
         return items
 
