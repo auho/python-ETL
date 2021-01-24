@@ -70,31 +70,36 @@ class Table(Model):
         if not self._group_alias_dict:
             self._group_alias_dict = dict()
 
-    def parse(self):
-        if self._select:
-            if type(self._select) == str:
-                if self._select == '*':
+    def _parse_select(self, select):
+        if select:
+            if type(select) == str:
+                if select == '*':
                     self.select_list.append(f"`{self._table_name}`.*")
                 else:
-                    self.select_list.append(self._parse_field_exp(self._select, self._table_name))
-            elif type(self._select) == dict:
-                for k, v in self._select.items():
+                    self.select_list.append(self._parse_field_exp(select, self._table_name))
+            elif type(select) == dict:
+                for k, v in select.items():
                     self.select_list.append(f"{self._parse_field_exp(k, self._table_name)} AS '{v}'")
-            elif type(self._select) == list:
-                for select in self._select:
-                    if select == '*':
+            elif type(select) == list:
+                for s in select:
+                    if s == '*':
                         self.select_list.append(f"`{self._table_name}`.*")
                     else:
-                        self.select_list.append(self._parse_field_exp(f"`{select}`", self._table_name))
+                        self.select_list.append(self._parse_field_exp(f"`{s}`", self._table_name))
             else:
-                print(self._select)
+                print(select)
                 raise Exception(f"{self._table_name} select is error!")
 
-        if self.where:
-            self.where = self._parse_field_exp(self.where, self._table_name)
+    def _parse_where(self, where):
+        if where:
+            if self.where:
+                self.where = self._parse_field_exp(where, self._table_name)
+            else:
+                self.where = ' AND ' + self._parse_field_exp(where, self._table_name)
 
-        if self._group_fields is not None:
-            for k in self._group_fields:
+    def _parse_group(self, group):
+        if group:
+            for k in group:
                 key = f"`{self._table_name}`.`{k}`"
 
                 if k in self._group_alias_dict:
@@ -107,14 +112,20 @@ class Table(Model):
 
                 self.group_list.append(key)
 
-        if self._aggregation_dict is not None:
-            for k, v in self._aggregation_dict.items():
-                key = self._parse_field_exp(k, self._table_name)
-                self.aggregation_list.append(f"{key} AS '{v}'")
-
-        if self._order_dict is not None:
-            for k, v in self._order_dict.items():
+    def _parse_order(self, order):
+        if order:
+            for k, v in order.items():
                 self.order_list.append(f"`{k}` {v}")
+
+    def parse(self):
+        self._parse_select(select=self._select)
+        self._parse_where(where=self.where)
+        self._parse_group(group=self._group_fields)
+        self._parse_select(select=self._aggregation_dict)
+        self._parse_order(order=self._order_dict)
+
+    def where_and(self, where):
+        self._parse_where(where=where)
 
     def get_table_name(self):
         if self.table_sql is None:

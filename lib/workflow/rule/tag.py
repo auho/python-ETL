@@ -49,23 +49,19 @@ def filter_regex_syntax_fun(keyword):
 
 
 class TagRule:
-    """
-    单字段打标签
-    """
-
-    def __init__(self, db, name=None, complete_keyword_name=None, complete_tags_name=None, complete_table_name=None, alias=None,
-                 fixed_tags=None, exclude_tags=None, keyword_fun_list=None, database_name=None):
+    def __init__(self, db, name=None, alias=None, fixed_tags=None, exclude_tags=None, keyword_fun_list=None, database_name=None,
+                 complete_keyword_name=None, complete_tags_name=None, complete_table_name=None):
         """
 
         :param db: 数据库
         :param name:
-        :param complete_table_name: rule list 表
-        :param complete_keyword_name: 匹配的关键词
-        :param complete_tags_name: 标签名称 ['tag1', 'tag2']
         :param alias: 标签别名 {'name':'alias'} name -> keyword table name； alias -> content table name
         :param fixed_tags: {name: vale}
         :param exclude_tags:
         :param database_name:
+        :param complete_table_name: rule list 表
+        :param complete_keyword_name: 匹配的关键词
+        :param complete_tags_name: 标签名称 ['tag1', 'tag2']
         """
 
         self._db = db
@@ -79,7 +75,7 @@ class TagRule:
         self._keywordFunList = keyword_fun_list  # type: list
         self._databaseName = database_name
 
-        self._fieldsAlias = {}  # type: dict
+        self._sqlFieldAlias = {}  # type: dict
         self._tagRuleList = None  # type: list
         self._regexString = ''
         self._pattern = None
@@ -100,14 +96,14 @@ class TagRule:
                 raise Exception('rule table columns is error!')
 
             self._tagsName = [x for x in columns if x.find(self._name) == 0 and x != self._keywordName]
+        else:
+            self._name = self._keywordName.replace('_keyword', '')
 
         if not self._tableName:
             raise Exception("table name IS ERROR!")
 
         if not self._keywordName:
             raise Exception("keyword filed name IS ERROR!")
-
-        self._name = self._keywordName.replace('_keyword', '')
 
         if not self._keywordFunList:
             self._keywordFunList = []
@@ -123,16 +119,16 @@ class TagRule:
         if not self._fixed_tags:
             self._fixed_tags = {}
 
-        self._fieldsAlias[self._keywordName] = self._get_alias(self._keywordName)
-        self._keywordName = self._fieldsAlias[self._keywordName]
+        self._sqlFieldAlias[self._keywordName] = self._get_alias(self._keywordName)
+        self._keywordName = self._sqlFieldAlias[self._keywordName]
 
         for index, tag_name in enumerate(self._tagsName):
-            if self._exclude_tags and tag_name.replace(self._name + '_', '') in self._exclude_tags:
+            if self._exclude_tags and (tag_name in self._exclude_tags or tag_name.replace(self._name + '_', '') in self._exclude_tags):
                 self._tagsName.pop(index)
                 continue
 
-            self._fieldsAlias[tag_name] = self._get_alias(tag_name)
-            self._tagsName[index] = self._fieldsAlias[tag_name]
+            self._sqlFieldAlias[tag_name] = self._get_alias(tag_name)
+            self._tagsName[index] = self._sqlFieldAlias[tag_name]
 
         for name in self._fixed_tags.keys():
             self._fixedName.append(name)
@@ -145,9 +141,8 @@ class TagRule:
         获取规则数据
         :return:
         """
-        field_list_select_string = ','.join([f"`{t}` AS `{ta}`" for t, ta in self._fieldsAlias.items()])
-
-        sql = f'SELECT {field_list_select_string} FROM {self._tableName} ORDER BY `keyword_len` DESC, `id` ASC'
+        select_string = ','.join([f"`{k}` AS `{v}`" for k, v in self._sqlFieldAlias.items()])
+        sql = f"SELECT {select_string} FROM {self._tableName} ORDER BY `keyword_len` DESC, `id` ASC"
         result = self._db.get_all(sql)
         self._tagRuleList = result
 
@@ -206,16 +201,13 @@ class TagRule:
             return tag_name
 
     def _add_fixed_tags_values(self, item):
-        fixed = tuple()
-        for value in self._fixed_tags.keys():
-            fixed = fixed + (value,)
-
-        if fixed:
+        if self._fixed_tags:
+            fixed = tuple(self._fixed_tags.values())
             return item + fixed
         else:
             return item
 
-    def _get_insert_fields(self):
+    def _get_tags_keys(self):
         return self._tagsName + self._fixedName
 
     def _tag(self, content):
@@ -244,7 +236,7 @@ class TagRule:
 
         return item
 
-    def _tag_multi_all_insert(self, content):
+    def _tag_multi_insert_every_keyword(self, content):
         keywords_frequency = self._tag(content=content)
         if not keywords_frequency:
             return False

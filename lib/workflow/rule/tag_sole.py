@@ -1,4 +1,4 @@
-from . import tag
+import tag
 
 
 class TagRule(tag.TagRule):
@@ -6,7 +6,7 @@ class TagRule(tag.TagRule):
         self._keywordFunList.append(tag.symbol_underline_fun)
 
     def get_keys(self):
-        return [self._keywordName] + self._get_insert_fields()
+        return [self._keywordName] + self._get_tags_keys()
 
     def tag_insert(self, content):
         return self._tag_insert(content=content)
