@@ -1,4 +1,4 @@
-import tag
+from . import tag
 
 
 class TagRule(tag.TagRule):

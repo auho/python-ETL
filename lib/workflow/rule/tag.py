@@ -232,9 +232,9 @@ class TagRule:
             return False
 
         keyword = self._decide_sole_keyword(keywords_frequency=keywords_frequency)
-        item = [self._generate_keyword_insert_item(keyword=keyword)]
+        items = [self._generate_keyword_insert_item(keyword=keyword)]
 
-        return item
+        return items
 
     def _tag_multi_insert_every_keyword(self, content):
         keywords_frequency = self._tag(content=content)

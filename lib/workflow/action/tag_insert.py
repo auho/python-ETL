@@ -3,26 +3,26 @@ from lib.workflow.func.func import FuncInsert
 
 
 class Action(mysql.ActionInsert):
-    def __init__(self, db, table_name, addition_fields=None, addition_dict=None, database_name=None, size=1000, kwargs=None):
+    def __init__(self, db, table_name, addition_fields=None, addition_alias=None, database_name=None, size=1000, kwargs=None):
         super().__init__(db=db, table_name=table_name, fields=[], database_name=database_name, size=size, kwargs=kwargs)
 
         self._additionFields = addition_fields
-        self._addition_dict = addition_dict  # type: dict
-        self._insert_fields = []  # type: list
+        self._additionAlias = addition_alias  # type: dict
+        self._insertFields = []  # type: list
         self._func = None  # type: FuncInsert
-        self._dp_fields = []  # type: list
+        self._dpFields = []  # type: list
 
         if self._additionFields:
-            self._dp_fields.extend(self._additionFields)
-            self._insert_fields.extend(self._additionFields)
+            self._dpFields.extend(self._additionFields)
+            self._insertFields.extend(self._additionFields)
 
-        if self._addition_dict:
-            for k, v in self._addition_dict.items():
-                self._dp_fields.append(k)
-                self._insert_fields.append(v)
+        if self._additionAlias:
+            for k, v in self._additionAlias.items():
+                self._dpFields.append(k)
+                self._insertFields.append(v)
 
     def init_action(self):
-        self.fields = self._insert_fields
+        self.fields = self._insertFields
 
         print(f"action:: {self.table_name}")
         print(f"func:: {self._func.__class__.__module__}.{self._func.__class__.__name__}")
@@ -32,8 +32,8 @@ class Action(mysql.ActionInsert):
             raise Exception('func is error!')
 
     def get_fields(self):
-        if self._dp_fields:
-            return self._dp_fields + self._func.get_fields()
+        if self._dpFields:
+            return self._dpFields + self._func.get_fields()
         else:
             return self._func.get_fields()
 
@@ -45,7 +45,7 @@ class Action(mysql.ActionInsert):
             raise Exception('func is not func.FuncInsert!')
 
         self._func = func_object
-        self._insert_fields.extend(self._func.get_keys())
+        self._insertFields.extend(self._func.get_keys())
 
     def do(self, item):
         try:
@@ -54,8 +54,8 @@ class Action(mysql.ActionInsert):
                 for field in self._additionFields:
                     insert_item = insert_item + (item[field],)
 
-            if self._addition_dict:
-                for k in self._addition_dict.keys():
+            if self._additionAlias:
+                for k in self._additionAlias.keys():
                     insert_item = insert_item + (item[k],)
 
             tags = self._func.insert(item=item)
@@ -70,6 +70,6 @@ class Action(mysql.ActionInsert):
                 self.add_item(insert_item + tag)
 
         except Exception as e:
-            print(self._insert_fields)
+            print(self._insertFields)
             print(item)
             raise e
