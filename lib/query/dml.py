@@ -19,8 +19,8 @@ class Table(Model):
     保存格式化 table 信息，方便组成 sql
     """
 
-    def __init__(self, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias_dict=None, order_dict=None,
-                 limit='', join_on=None, table_sql=None):
+    def __init__(self, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias=None, order_dict=None, limit='',
+                 table_sql=None):
         """
 
         :param table_name: left join table name
@@ -28,9 +28,9 @@ class Table(Model):
         :param where: 字符串
         :param group_fields: [key name]
         :param aggregation_dict: {'COUNT(*)': '评论量'}
-        :param group_alias_dict: 分组字典 key name:key title
+        :param group_alias: 分组字典 key name:key title
         :param order_dict: 分组字典 key name:key sort
-        :param join_on: 全条件 `theme`.`theme_id` = `comment`.`theme_id`
+        :param limit: str
         :param table_sql: 直接使用 sql 结果作为表，表名为 table_name
 
         所有配置中的关键值名称需要带上 `
@@ -43,10 +43,9 @@ class Table(Model):
         self.where = where  # type:str
         self._group_fields = group_fields  # type:list
         self._aggregation_dict = aggregation_dict  # type:dict
-        self._group_alias_dict = group_alias_dict  # type:dict
+        self._group_alias_dict = group_alias  # type:dict
         self._order_dict = order_dict  # type:dict
         self.limit = limit
-        self.join_on = join_on
         self.table_sql = table_sql
 
         self.select_list = []
@@ -160,9 +159,14 @@ class TableJoin(Model):
 
         return self
 
-    def table_left(self, table: Table):
+    def table_left(self, table: Table, join_on):
+        """
+        :param table:
+        :param join_on: 全条件 `t`.`id` = `t1`.`id`
+        """
+
         self._add_table(table=table)
-        self._table_list.append(f"LEFT JOIN {table.get_table_name()} ON {table.join_on}")
+        self._table_list.append(f"LEFT JOIN {table.get_table_name()} ON {join_on}")
 
         return self
 
