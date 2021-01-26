@@ -29,7 +29,7 @@ class Model:
 
 
 class TableTopGather:
-    def __init__(self, name, values, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias_dict=None,
+    def __init__(self, key, values, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias_dict=None,
                  order_dict=None, limit='', table_sql=None):
 
         self._tables = []
@@ -37,7 +37,7 @@ class TableTopGather:
         for value in values:
             table = Table(table_name=table_name, select=select, where=where, group_fields=group_fields, aggregation_dict=aggregation_dict,
                           group_alias=group_alias_dict, order_dict=order_dict, limit=limit, table_sql=table_sql)
-            table.where_and(where=f"`{name}` = '{value}'")
+            table.where_and(where=f"`{key}` = '{value}'")
 
             self._tables.append(table)
 

@@ -7,8 +7,8 @@ class XlsxImport:
         self._df = None  # type:pandas.DataFrame
         self._xlsx = pandas.io.excel.ExcelFile(xlsx_file)
 
-    def read_sheet(self, sheet_name, fixed=None, dtype=None):
-        self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=0, dtype=dtype)
+    def read_sheet(self, sheet_name, fixed=None, header=0, dtype=None):
+        self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=header, dtype=dtype)
         self._set_df(fixed=fixed)
 
     def read_sheet_with_columns(self, sheet_name, start_row, columns, dtype=None, fixed=None):
@@ -34,10 +34,13 @@ class XlsxImport:
 
     def _get_sheet_name(self, sheet_name):
         real_sheet_name = ''
-        for name in self._xlsx.sheet_names:
-            if name.find(sheet_name) > -1:
-                real_sheet_name = name
-                break
+        if type(sheet_name) == int:
+            real_sheet_name = sheet_name
+        else:
+            for name in self._xlsx.sheet_names:
+                if name.find(sheet_name) > -1:
+                    real_sheet_name = name
+                    break
 
         if not real_sheet_name:
             raise Exception('sheet is not exists!')

@@ -13,6 +13,9 @@ class Table(TableDDl):
 
         self._init()
 
+    def get_table_name(self):
+        return self._tableName
+
     def build(self, db):
         self.DDLRule.build(db=db)
         self.DDLSource.build(db=db)

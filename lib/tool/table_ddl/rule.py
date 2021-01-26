@@ -3,13 +3,20 @@ from lib.db.ddl import mysql
 
 
 class Table(TableDDl):
+    TableRule = 'rule_'
     KeyWord = 'keyword'
 
-    def __init__(self, tag_name, tags=None):
+    def __init__(self, tag_name, tags=None, table_name=None):
+        self._tableName = None
         self._tagName = tag_name
         self._tags = tags  # type:list
 
         self.DDLRule = None  # type: mysql.DDLBuild
+
+        if table_name:
+            self._tableName = self.TableRule + table_name
+        else:
+            self._tableName = self.TableRule + tag_name
 
         if self._tags:
             self._tags.append(self.KeyWord)
@@ -18,14 +25,17 @@ class Table(TableDDl):
 
         self._init()
 
+    def get_table_name(self):
+        return self._tableName
+
     def build(self, db):
         self.DDLRule.build(db=db)
 
     def _init(self):
-        self.DDLRule = mysql.DDLCreate(table_name='rule_' + self._tagName)
+        self.DDLRule = mysql.DDLCreate(table_name=self._tableName)
 
         self._add_fields(ddl_rule=self.DDLRule)
-        self.DDLRule.add_int(name='keyword_len')
+        self.DDLRule.add_int(name=self.KeyWord + '_len')
         self.DDLRule.add_unique_index(name=self._tagName + '_' + self.KeyWord)
 
     def _generate_keys(self):

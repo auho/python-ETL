@@ -49,28 +49,35 @@ def filter_regex_syntax_fun(keyword):
 
 
 class TagRule:
-    def __init__(self, db, name=None, alias=None, fixed_tags=None, exclude_tags=None, keyword_fun_list=None, database_name=None,
-                 complete_keyword_name=None, complete_tags_name=None, complete_table_name=None):
+    def __init__(self, db, name=None, alias=None, fixed_tags=None, extra_tags=None, exclude_tags=None, keyword_fun_list=None, database_name=None,
+                 short_table_name=None, complete_keyword_name=None, complete_tags_name=None, complete_table_name=None):
         """
 
         :param db: 数据库
         :param name:
         :param alias: 标签别名 {'name':'alias'} name -> keyword table name； alias -> content table name
         :param fixed_tags: {name: vale}
+        :param extra_tags: list
         :param exclude_tags:
-        :param database_name:
+        :param database_name: str
+        :param short_table_name: str
         :param complete_table_name: rule list 表
         :param complete_keyword_name: 匹配的关键词
         :param complete_tags_name: 标签名称 ['tag1', 'tag2']
         """
 
+        self._args = locals()
+        del self._args['self']
+
         self._db = db
         self._name = name
+        self._shortTableName = short_table_name
         self._tableName = complete_table_name
         self._keywordName = complete_keyword_name
         self._tagsName = complete_tags_name  # type: list
         self._alias = alias  # type: dict
         self._fixed_tags = fixed_tags  # type: dict
+        self._extra_tags = extra_tags  # type:list
         self._exclude_tags = exclude_tags  # type:list
         self._keywordFunList = keyword_fun_list  # type: list
         self._databaseName = database_name
@@ -88,7 +95,11 @@ class TagRule:
 
     def _check(self):
         if self._name:
-            self._tableName = 'rule_' + self._name
+            if self._shortTableName:
+                self._tableName = 'rule_' + self._shortTableName
+            else:
+                self._tableName = 'rule_' + self._name
+
             self._keywordName = self._name + '_keyword'
 
             columns = self._db.get_table_columns(table_name=self._tableName, database_name=self._databaseName)
@@ -118,6 +129,9 @@ class TagRule:
 
         if not self._fixed_tags:
             self._fixed_tags = {}
+
+        if self._extra_tags:
+            self._tagsName.extend(self._extra_tags)
 
         self._sqlFieldAlias[self._keywordName] = self._get_alias(self._keywordName)
         self._keywordName = self._sqlFieldAlias[self._keywordName]
@@ -389,6 +403,9 @@ class TagRule:
 
     def _main(self):
         pass
+
+    def get_args(self):
+        return self._args
 
     def main(self):
         self._check()

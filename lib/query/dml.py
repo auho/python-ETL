@@ -192,6 +192,8 @@ class TableJoin(Model):
             else:
                 raise Exception("table join select is error")
 
+        return self
+
     def _select_string(self):
         if self._select_list:
             return ','.join(self._select_list)

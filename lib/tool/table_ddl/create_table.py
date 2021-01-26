@@ -1,12 +1,16 @@
+from .interface import TableDDl
 from lib.db.ddl import mysql
 
 
-class Table:
+class Table(TableDDl):
     def __init__(self, table_name):
         self._tableName = table_name
         self.DDLTable = None  # type: mysql.DDLBuild
 
         self._init()
+
+    def get_table_name(self):
+        return self._tableName
 
     def build(self, db):
         self.DDLTable.build(db=db)

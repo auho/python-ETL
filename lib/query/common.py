@@ -12,10 +12,16 @@ class BaseQuery:
         self.DEBUG = False
         self.ENV_DEBUG = 'dev'
 
+        self._sheet_amount = 0
+
+    def get_sheet_amount(self):
+        return self._sheet_amount
+
     def to_excel(self, name, df):
         if self.DEBUG:
             return
 
+        self._sheet_amount += 1
         start_time = time.time()
 
         df.to_excel(self._excel, sheet_name=name, index=False)
@@ -36,7 +42,7 @@ class BaseQuery:
 
         self._excel = None
 
-        print("excel saved\n\n")
+        print(f"excel saved. All sheet amount:: {self._sheet_amount}\n\n")
 
     def _create_excel(self, excel_name):
         excel_name = excel_name.replace(' ', '_').replace('/', '_')

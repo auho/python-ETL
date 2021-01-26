@@ -32,17 +32,22 @@ class PartConfig:
 
 
 class App:
-    modulePath = None
     configName = None
+    moduleImport = None
+    moduleName = None
+    modulePath = None
+
     mysqlDb = None
     mysqlDbConf = None
     ENV = 'dev'
     DEBUG = True
     ENV_DEBUG = False
 
-    def __init__(self, module_path):
-        self.modulePath = module_path
+    def __init__(self, module_path, root_path):
         self.configName = input_args.config
+        self.modulePath = module_path
+        self.moduleName = self.modulePath.replace(root_path + '/', '')
+        self.moduleImport = self.moduleName.replace('/', '.')
 
         part_conf = PartConfig()  # type:PartConfig
         part_conf.parse(conf_name=input_args.config, module_path=module_path)
@@ -58,14 +63,20 @@ class App:
 
         self._init_info()
 
-    def get_data_file_path(self, file):
-        return self.get_data_path() + '/' + file
+    def get_sub_import(self, sub):
+        return self.moduleImport + '.' + sub
 
-    def get_data_path(self):
-        return self.modulePath + '/data'
+    def get_sub_path(self, sub):
+        return self.modulePath + '/' + sub
 
     def get_conf_path(self):
-        return self.modulePath + '/conf'
+        return self.get_sub_path(sub='conf')
+
+    def get_data_path(self):
+        return self.get_sub_path(sub='data')
+
+    def get_data_file_path(self, file):
+        return self.get_data_path() + '/' + file
 
     def _init_info(self):
         print("=" * 50)
