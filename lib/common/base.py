@@ -5,7 +5,7 @@ from lib.query import common
 
 FILE = os.path.abspath(sys.argv[0])
 FILE_PATH = os.path.dirname(FILE)
-MODULE_PATH = os.path.dirname(FILE_PATH)
+MODULE_PATH = FILE_PATH
 
 is_module_path = False
 while not is_module_path:
