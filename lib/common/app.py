@@ -1,6 +1,7 @@
 import argparse
 import yaml
 import sys
+from .conf import MysqlConf
 from lib.db import mysql
 
 parser = argparse.ArgumentParser()
@@ -10,12 +11,12 @@ input_args = parser.parse_args()
 
 class PartConfig:
     def __init__(self):
-        self._mysqlDbConf = {}
+        self._mysqlDbConf = MysqlConf()
         self._yamlConfig = None
 
     def parse(self, conf_name, module_path):
         self._parse_yaml(conf_name, module_path)
-        self._mysqlDbConf = self.get('mysql')
+        self._mysqlDbConf.load(self.get('mysql'))
 
     def get(self, name):
         return self._yamlConfig[name]
@@ -52,7 +53,7 @@ class App:
         part_conf = PartConfig()  # type:PartConfig
         part_conf.parse(conf_name=input_args.config, module_path=module_path)
 
-        self.mysqlDbConf = part_conf.mysql_db_conf
+        self.mysqlDbConf = part_conf.mysql_db_conf  # type:MysqlConf
         self.mysqlDb = mysql.Mysql(self.mysqlDbConf)  # type: mysql.Mysql
         self.mysqlDb.connect()
 
@@ -83,7 +84,7 @@ class App:
         print("=" * 2 + f" MODULE PATH:: {self.modulePath}")
         print("=" * 2 + f" FILE PATH:: {' '.join(sys.argv)}")
         print(f" config file: {self.configName}")
-        print(f" db:: {self.mysqlDbConf['db']}")
+        print(f" db:: {self.mysqlDbConf.db}")
         print(f" debug:: {str(int(self.DEBUG))}")
         print(f" env_debug:: {str(int(self.ENV_DEBUG))}")
         print("=" * 50)

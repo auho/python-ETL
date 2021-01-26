@@ -1,4 +1,5 @@
 import pandas, time, pathlib, os
+from lib.common.conf import MysqlConf
 from lib.db.mysql import Mysql
 
 
@@ -73,13 +74,13 @@ class BaseQuery:
         print("=================================" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         print(f"excel:: {self._excel_name}")
         print(f"sheet:: {sheet_name}")
-        print("db:: " + db_conf['db'])
+        print("db:: " + db_conf.db)
         print(f"{sql};\n")
 
     def _show_execute_info(self, sql, db_conf):
         print("=================================" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         print(f"excel:: {self._excel_name}")
-        print("db:: " + db_conf['db'])
+        print("db:: " + db_conf.db)
         print(f"{sql};\n")
 
     def _get_df_from_sql(self, name, sql, db, db_conf, is_force=False):
@@ -143,7 +144,7 @@ class CommonQuery(BaseQuery):
         super().__init__()
 
         self._basePath = app.modulePath
-        self.mysqlDbConf = app.mysqlDbConf
+        self.mysqlDbConf = app.mysqlDbConf  # type:MysqlConf
         self.mysqlDb = app.mysqlDb  # type:Mysql
         self.DEBUG = app.DEBUG
         self.ENV_DEBUG = app.ENV_DEBUG

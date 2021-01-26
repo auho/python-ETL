@@ -1,20 +1,22 @@
 import pymysql
+from lib.common.conf import MysqlConf
 
 
 class Mysql:
-    def __init__(self, mysql_info):
+    def __init__(self, mysql_conf: MysqlConf):
         """
 
-        :param mysql_info:dict
+        :param mysql_conf:dict
         """
         self.db = None  # type:pymysql.connections.Connection
         self.cursor = None  # type:pymysql.cursors.Cursor
-        self.__mysqlInfo = mysql_info
+        self.__mysqlConf = mysql_conf
 
-        self.databaseName = mysql_info['db']
+        self.databaseName = mysql_conf.db
 
     def connect(self):
-        self.db = pymysql.connect(**self.__mysqlInfo, charset='utf8')
+        dns = self.__mysqlConf.dns()
+        self.db = pymysql.connect(**dns)
         self.cursor = self.db.cursor(cursor=pymysql.cursors.DictCursor)
 
     def close(self):
