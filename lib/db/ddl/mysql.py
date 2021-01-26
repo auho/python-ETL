@@ -38,6 +38,10 @@ class DDLBuild(metaclass=ABCMeta):
         sql = self._DDL.alter_decimal(table_name=self._tableName, name=name, m=m, d=d)
         self._add_sql(sql=sql)
 
+    def add_text(self, name):
+        sql = self._DDL.alter_text(table_name=self._tableName, name=name)
+        self._add_sql(sql=sql)
+
     def add_index(self, name):
         sql = self._DDL.alter_index(table_name=self._tableName, name=name)
         self._add_sql(sql=sql)
@@ -101,6 +105,10 @@ class DDLGenerate:
     @staticmethod
     def alter_decimal(table_name, name, m, d):
         return f"ALTER TABLE `{table_name}` ADD `{name}` DECIMAL({m},{d}) NOT NULL DEFAULT 0"
+
+    @staticmethod
+    def alter_text(table_name, name):
+        return f"ALTER TABLE `{table_name}` ADD `{name}` text"
 
     @staticmethod
     def alter_index(table_name, name):

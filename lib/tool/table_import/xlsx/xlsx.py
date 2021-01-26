@@ -33,7 +33,7 @@ class XlsxImport:
         print(f"xlsx import done: {table_name} {len(data)}")
 
     def _get_sheet_name(self, sheet_name):
-        real_sheet_name = ''
+        real_sheet_name = None
         if type(sheet_name) == int:
             real_sheet_name = sheet_name
         else:
@@ -42,7 +42,7 @@ class XlsxImport:
                     real_sheet_name = name
                     break
 
-        if not real_sheet_name:
+        if real_sheet_name is None:
             raise Exception('sheet is not exists!')
 
         return real_sheet_name
