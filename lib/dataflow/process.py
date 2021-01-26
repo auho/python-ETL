@@ -1,4 +1,5 @@
 import time
+from abc import ABCMeta, abstractmethod
 from lib.tool import commonTool
 
 
@@ -220,7 +221,7 @@ class ComplexAction(Action):
             method(**kwargs)
 
 
-class DataProvider:
+class DataProvider(metaclass=ABCMeta):
     """
     data provider
     """
@@ -238,6 +239,11 @@ class DataProvider:
 
         return item
 
+    @abstractmethod
+    def start(self):
+        pass
+
+    @abstractmethod
     def next(self):
         """
         下一批数据

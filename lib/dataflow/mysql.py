@@ -33,6 +33,9 @@ class DataProvide(process.DataProvider):
 
         self._sql = self._generate_sql()
 
+    def start(self):
+        print(f"start:: {self._db}.{self._table_name} id:: {self._id_name}")
+
     def next(self):
         sql = self._get_sql(self._last_id)
         items = self._db.get_all(sql=sql)
@@ -95,6 +98,7 @@ class ActionInsert(process.Action):
 
     def before_action(self):
         self.db.truncate(table_name=self.table_name, database_name=self.database_name)
+        print(f"action insert:: {self.db}.{self.table_name}", self.fields)
 
     def after_do(self):
         if len(self._items) > self.size:
@@ -117,6 +121,7 @@ class ActionUpdate(process.Action):
         self.size = size
 
     def before_action(self):
+        print(f"action update:: {self.db}.{self.table_name}")
         return True
 
     def after_do(self):
