@@ -22,7 +22,7 @@ class XlsxImport:
 
         self._read()
 
-    def save(self, db: Mysql, table_name, is_replace=False):
+    def save(self, db: Mysql, table_name, is_truncate=True, is_replace=False):
         self._compare_diff_columns(db=db, table_name=table_name, df_columns=self._df.columns)
 
         data = []
@@ -32,7 +32,8 @@ class XlsxImport:
         if is_replace:
             db.replace_many(table_name=table_name, fields=list(self._df.columns), data=data)
         else:
-            db.truncate(table_name=table_name)
+            if is_truncate:
+                db.truncate(table_name=table_name)
             db.insert_many(table_name=table_name, fields=list(self._df.columns), data=data)
 
         self._df = None

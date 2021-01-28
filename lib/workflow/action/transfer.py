@@ -3,8 +3,8 @@ from lib.workflow.func.func import FuncTransfer
 
 
 class Action(mysql.ActionInsert):
-    def __init__(self, db, table_name, fields, database_name=None, size=1000, kwargs=None):
-        super().__init__(db=db, table_name=table_name, fields=[], database_name=database_name, size=size, kwargs=kwargs)
+    def __init__(self, db, table_name, fields, database_name=None, size=1000, is_truncate=True, kwargs=None):
+        super().__init__(**self._get_method_args(locals()))
 
         self._fields = fields
         self._func = None  # type: FuncTransfer

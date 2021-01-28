@@ -87,7 +87,7 @@ class ActionInsert(process.Action):
     action for mysql
     """
 
-    def __init__(self, db, table_name, fields, database_name=None, size=5000, kwargs=None):
+    def __init__(self, db, table_name, fields, database_name=None, size=5000, is_truncate=True, kwargs=None):
         super().__init__(kwargs=kwargs)
 
         self.db = db
@@ -95,9 +95,12 @@ class ActionInsert(process.Action):
         self.database_name = database_name
         self.table_name = table_name
         self.size = size
+        self.is_truncate = is_truncate
 
     def before_action(self):
-        self.db.truncate(table_name=self.table_name, database_name=self.database_name)
+        if self.is_truncate:
+            self.db.truncate(table_name=self.table_name, database_name=self.database_name)
+
         print(f"action insert:: {self.db}.{self.table_name}", self.fields)
 
     def after_do(self):

@@ -3,8 +3,8 @@ from lib.workflow.func.func import FuncInsert
 
 
 class Action(mysql.ActionInsert):
-    def __init__(self, db, table_name, addition_fields=None, addition_alias=None, database_name=None, size=1000, kwargs=None):
-        super().__init__(db=db, table_name=table_name, fields=[], database_name=database_name, size=size, kwargs=kwargs)
+    def __init__(self, db, table_name, addition_fields=None, addition_alias=None, database_name=None, size=1000, is_truncate=True, kwargs=None):
+        super().__init__(db=db, table_name=table_name, fields=[], database_name=database_name, size=size, is_truncate=is_truncate, kwargs=kwargs)
 
         self._additionFields = addition_fields
         self._additionAlias = addition_alias  # type: dict

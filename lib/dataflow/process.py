@@ -8,6 +8,13 @@ class DataFlow:
         self._runStartTimePoint = 0
         self._runEndTimePoint = 0
 
+    @staticmethod
+    def _get_method_args(args):
+        if 'self' in args:
+            del args['self']
+
+        return args
+
     def start_time(self):
         self._runStartTimePoint = time.time()
 
