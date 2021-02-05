@@ -13,6 +13,9 @@ class DataFlow:
         if 'self' in args:
             del args['self']
 
+        if '__class__' in args:
+            del args['__class__']
+
         return args
 
     def start_time(self):
