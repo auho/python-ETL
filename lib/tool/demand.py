@@ -1,3 +1,4 @@
+import os
 import importlib
 from lib.common.app import App
 
@@ -32,14 +33,67 @@ class Demand:
         return getattr(self._module, entity_name)
 
 
-class DemandModule:
+class DemandApp:
     def __init__(self, app: App):
         self._APP = app
+        self._run_items = []
+
+    def run_dir(self, path=None):
+        if path:
+            if path[-1] == '/':
+                path = path[:-1]
+            abs_path = self._APP.modulePath + '/' + path
+        else:
+            abs_path = self._APP.modulePath
+
+        path_import = self._generate_app_path_import(path=path)
+
+        for root, dirs, files in os.walk(abs_path):
+            if root.find('__pycache__') > -1:
+                continue
+
+            if root == abs_path:
+                root = ''
+            else:
+                root = root.replace(abs_path + '/', '')
+                if root[-1] != '/':
+                    root = root + '/'
+
+            for file in files:
+                file = root + file[:-3]
+
+                self._log_run_item(path=path, file=file)
+
+                importlib.import_module(path_import + '.' + self._convert_path_to_import(path=file))
+
+        return self
 
     def run_files(self, files_names, path=None):
-        module_import = self._APP.moduleImport
-        if path:
-            module_import = module_import + '.' + path.strip('/').replace('/', '.')
+        path_import = self._generate_app_path_import(path=path)
 
         for file_name in files_names:
-            importlib.import_module(module_import + '.' + file_name)
+            importlib.import_module(path_import + '.' + file_name)
+
+        return self
+
+    def log(self):
+        print(self._run_items)
+
+    def _generate_app_path_import(self, path):
+        if path:
+            return self._APP.moduleImport + '.' + self._convert_path_to_import(path=path)
+        else:
+            return self._APP.moduleImport
+
+    @staticmethod
+    def _convert_path_to_import(path):
+        if path:
+            return path.strip('/').replace('/', '.')
+        else:
+            return ''
+
+    def _log_run_item(self, path, file):
+        if path:
+            self._run_items.append(path + '/' + file)
+        else:
+            self._run_items.append(file)
