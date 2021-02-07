@@ -105,7 +105,7 @@ class DemandApp:
 
         return all_files_import
 
-    def log(self):
+    def state(self):
         for item in self._run_items:
             print(item)
 
@@ -130,18 +130,29 @@ class DemandThread(threading.Thread):
         self._dq = dq  # type:DemandQueue
         self._da = da  # type:DemandApp
 
+        self.e = None
+
+    def check_error(self):
+        if self.e:
+            raise self.e
+
     def run(self):
-        time.sleep(0.01)
         while not self._dq.can_exit():
             file_import = None
             try:
                 file_import = self._dq.get()
+                if not file_import:
+                    break
+
+                self._dq.done()
+
                 self._da.run_file_import(file_import=file_import)
             except Exception as e:
                 if file_import:
-                    print("ERROR::", file_import)
+                    self.e = e
                 else:
                     print("ERROR::", "no queue")
+
                 break
 
         print("thread done")
@@ -171,28 +182,33 @@ class DemandQueue:
             self.put(file_import)
 
         self._wait()
+        self.state()
 
     def get(self):
-        return self._queue.get(timeout=1)
+        return self._queue.get()
 
     def put(self, item):
         return self._queue.put(item)
+
+    def done(self):
+        self._queue.task_done()
 
     def can_exit(self):
         return self._exitFlag
 
     def _wait(self):
-        while not self._queue.empty():
-            time.sleep(0.1)
-
+        self._queue.join()
         self._exitFlag = True
 
         for t in self._threadList:
             t.join()
+            t.check_error()
 
         self._endTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
+    def state(self):
         print(f"start:: {self._startTime}")
         print(f"end:: {self._endTime}")
+
         for file_import in self._filesImport:
             print(file_import)

@@ -4,6 +4,9 @@ from lib.db.mysql import Mysql
 
 
 class BaseQuery:
+    SHEET_AMOUNT = 0
+    SHEETS_INFO = dict()
+
     def __init__(self):
         self._excel_name = ''
         self._excel = None  # type: pandas.ExcelWriter
@@ -14,6 +17,7 @@ class BaseQuery:
         self.ENV_DEBUG = 'dev'
 
         self._sheet_amount = 0
+        self._sheets_name = []
 
     def get_sheet_amount(self):
         return self._sheet_amount
@@ -23,6 +27,7 @@ class BaseQuery:
             return
 
         self._sheet_amount += 1
+        self._sheets_name.append(name)
         start_time = time.time()
 
         df.to_excel(self._excel, sheet_name=name, index=False)
@@ -35,14 +40,14 @@ class BaseQuery:
             return
 
         start_time = time.time()
-
         self._excel.save()
-
         end_time = time.time()
-        print('save excel duration:: ' + str(end_time - start_time))
 
+        BaseQuery.SHEET_AMOUNT += self._sheet_amount
+        BaseQuery.SHEETS_INFO[self._excel_name] = self._sheets_name
         self._excel = None
 
+        print('save excel duration:: ' + str(end_time - start_time))
         print(f"excel saved. All sheet amount:: {self._sheet_amount}\n\n")
 
     def _create_excel(self, excel_name):
