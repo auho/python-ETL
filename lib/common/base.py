@@ -21,6 +21,16 @@ __common_path = os.path.dirname(__file_path)
 LIB_PATH = os.path.dirname(__common_path)
 ROOT_PATH = os.path.dirname(LIB_PATH)
 
-APP = app.App(MODULE_PATH, ROOT_PATH)
 
-QUERY = common.CommonQuery(app=APP)
+def new_app():
+    return app.App(MODULE_PATH, ROOT_PATH)
+
+
+def new_query():
+    return common.CommonQuery(app=new_app())
+
+
+APP = new_app()
+APP.log()
+
+QUERY = new_query()

@@ -62,8 +62,6 @@ class App:
         if self.ENV == 'dev':
             self.ENV_DEBUG = True
 
-        self._init_info()
-
     def get_sub_import(self, sub):
         return self.moduleImport + '.' + sub
 
@@ -78,6 +76,9 @@ class App:
 
     def get_data_file_path(self, file):
         return self.get_data_path() + '/' + file
+
+    def log(self):
+        self._init_info()
 
     def _init_info(self):
         print("=" * 50)

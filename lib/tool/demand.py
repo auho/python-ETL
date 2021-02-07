@@ -1,5 +1,8 @@
 import os
 import importlib
+import threading
+import queue
+import time
 from lib.common.app import App
 
 
@@ -39,6 +42,39 @@ class DemandApp:
         self._run_items = []
 
     def run_dir(self, path=None):
+        all_files_import = self.get_files_import_of_dir(path=path)
+        for file_import in all_files_import:
+            self.run_file_import(file_import=file_import)
+
+        return self
+
+    def run_path_files(self, files_names, path=None):
+        all_files_import = self.get_files_import_of_files(files_names=files_names, path=path)
+        for file_import in all_files_import:
+            self.run_file_import(file_import=file_import)
+
+        return self
+
+    def run_file(self, file):
+        file_import = self._generate_app_path_import(path=file)
+        self.run_file_import(file_import=file_import)
+
+    def run_file_import(self, file_import):
+        self._run_items.append(file_import)
+
+        importlib.import_module(file_import)
+
+    def get_files_import_of_files(self, files_names, path=None):
+        all_files_import = []
+        path_import = self._generate_app_path_import(path=path)
+
+        for file_name in files_names:
+            all_files_import.append(path_import + '.' + file_name)
+
+        return all_files_import
+
+    def get_files_import_of_dir(self, path=None):
+        all_files_import = []
         if path:
             if path[-1] == '/':
                 path = path[:-1]
@@ -60,24 +96,18 @@ class DemandApp:
                     root = root + '/'
 
             for file in files:
+                if file[-3:] != '.py':
+                    continue
+
                 file = root + file[:-3]
+                file_import = path_import + '.' + self._convert_path_to_import(path=file)
+                all_files_import.append(file_import)
 
-                self._log_run_item(path=path, file=file)
-
-                importlib.import_module(path_import + '.' + self._convert_path_to_import(path=file))
-
-        return self
-
-    def run_files(self, files_names, path=None):
-        path_import = self._generate_app_path_import(path=path)
-
-        for file_name in files_names:
-            importlib.import_module(path_import + '.' + file_name)
-
-        return self
+        return all_files_import
 
     def log(self):
-        print(self._run_items)
+        for item in self._run_items:
+            print(item)
 
     def _generate_app_path_import(self, path):
         if path:
@@ -92,8 +122,77 @@ class DemandApp:
         else:
             return ''
 
-    def _log_run_item(self, path, file):
-        if path:
-            self._run_items.append(path + '/' + file)
-        else:
-            self._run_items.append(file)
+
+class DemandThread(threading.Thread):
+    def __init__(self, dq, da):
+        threading.Thread.__init__(self)
+
+        self._dq = dq  # type:DemandQueue
+        self._da = da  # type:DemandApp
+
+    def run(self):
+        time.sleep(0.01)
+        while not self._dq.can_exit():
+            file_import = None
+            try:
+                file_import = self._dq.get()
+                self._da.run_file_import(file_import=file_import)
+            except Exception as e:
+                if file_import:
+                    print("ERROR::", file_import)
+                else:
+                    print("ERROR::", "no queue")
+                break
+
+        print("thread done")
+
+
+class DemandQueue:
+    def __init__(self, files_import, demand_app):
+        self._filesImport = files_import
+        self._size = len(self._filesImport)
+        self._queue = queue.Queue(self._size)
+        self._threadList = []  # type: [DemandThread]
+        self._demandApp = demand_app  # type:DemandApp
+        self._exitFlag = False
+
+        self._startTime = ''
+        self._endTime = ''
+
+    def run(self, thread_num=2):
+        self._startTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+        for i in range(0, thread_num):
+            t = DemandThread(dq=self, da=self._demandApp)
+            t.start()
+            self._threadList.append(t)
+
+        for file_import in self._filesImport:
+            self.put(file_import)
+
+        self._wait()
+
+    def get(self):
+        return self._queue.get(timeout=1)
+
+    def put(self, item):
+        return self._queue.put(item)
+
+    def can_exit(self):
+        return self._exitFlag
+
+    def _wait(self):
+        while not self._queue.empty():
+            time.sleep(0.1)
+
+        self._exitFlag = True
+
+        for t in self._threadList:
+            t.join()
+
+        self._endTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
+
+        print(f"start:: {self._startTime}")
+        print(f"end:: {self._endTime}")
+        for file_import in self._filesImport:
+            print(file_import)
