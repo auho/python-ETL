@@ -12,15 +12,11 @@ class XlsxImport:
         self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=header, dtype=dtype, nrows=nrows)
         self._set_df(fixed=fixed)
 
-        self._read()
-
     def read_sheet_with_columns(self, sheet_name, start_row, columns, dtype=None, fixed=None, nrows=None):
         self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=None, dtype=dtype, nrows=nrows)
         self._df = self._df.iloc[start_row:, :len(columns)]
         self._df.columns = columns
         self._set_df(fixed=fixed)
-
-        self._read()
 
     def save(self, db: Mysql, table_name, is_truncate=True, is_replace=False):
         self._compare_diff_columns(db=db, table_name=table_name, df_columns=self._df.columns)
@@ -36,8 +32,8 @@ class XlsxImport:
                 db.truncate(table_name=table_name)
             db.insert_many(table_name=table_name, fields=list(self._df.columns), data=data)
 
-        self._df = None
-
+        self._state()
+        self._clean()
         print(f"xlsx import done: {table_name} {len(data)}")
 
     @staticmethod
@@ -48,9 +44,12 @@ class XlsxImport:
         if diff:
             raise Exception(f"{db.databaseName}.{table_name} columns is miss:: ", diff)
 
-    def _read(self):
+    def _state(self):
         print('columns:: ', self._df.columns)
         print(f"line amount:: {self._df.index.size}")
+
+    def _clean(self):
+        self._df = None
 
     def _get_sheet_name(self, sheet_name):
         real_sheet_name = None
