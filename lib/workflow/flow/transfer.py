@@ -7,6 +7,15 @@ from lib.workflow.func.func import FuncTransfer
 
 class TagFlow:
     @staticmethod
+    def flow_actions(db, table_name, id_name, actions, database_name=None):
+        fields = db.get_table_columns(table_name=table_name, database_name=database_name)
+
+        dp = mysql.DataProvide(db=db, table_name=table_name, id_name=id_name, database_name=database_name, fields=fields, read_page_size=2000,
+                               last_id=0)
+
+        process.DispatchCenter.dispatch(dp=dp, actions=actions)
+
+    @staticmethod
     def flow(db: Mysql, table_name, tag_table_name, id_name, func: FuncTransfer, exclude_fields=None, database_name=None):
         fields = db.get_table_columns(table_name=table_name, database_name=database_name)
 

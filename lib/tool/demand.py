@@ -41,8 +41,8 @@ class DemandApp:
         self._APP = app
         self._run_items = []
 
-    def run_dir(self, path=None):
-        all_files_import = self.get_files_import_of_dir(path=path)
+    def run_path(self, path=None):
+        all_files_import = self.get_files_import_of_path(path=path)
         for file_import in all_files_import:
             self.run_file_import(file_import=file_import)
 
@@ -73,7 +73,7 @@ class DemandApp:
 
         return all_files_import
 
-    def get_files_import_of_dir(self, path=None):
+    def get_files_import_of_path(self, path=None):
         all_files_import = []
         if path:
             if path[-1] == '/':
@@ -159,10 +159,10 @@ class DemandThread(threading.Thread):
 
 
 class DemandQueue:
-    def __init__(self, files_import, demand_app):
-        self._filesImport = files_import
-        self._size = len(self._filesImport)
-        self._queue = queue.Queue(self._size)
+    def __init__(self, demand_app):
+        self._filesImport = ''
+        self._size = 0
+        self._queue = None  # type:queue.Queue
         self._threadList = []  # type: [DemandThread]
         self._demandApp = demand_app  # type:DemandApp
         self._exitFlag = False
@@ -170,7 +170,18 @@ class DemandQueue:
         self._startTime = ''
         self._endTime = ''
 
-    def run(self, thread_num=2):
+    def _set_files_import(self, files_import):
+        self._filesImport = files_import
+        self._size = len(self._filesImport)
+        self._queue = queue.Queue(self._size)
+
+    def run_path(self, path, thread_num=2):
+        files_import = self._demandApp.get_files_import_of_path(path=path)
+        self.run_files_import(files_import=files_import, thread_num=thread_num)
+
+    def run_files_import(self, files_import, thread_num=2):
+        self._set_files_import(files_import=files_import)
+
         self._startTime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())
 
         for i in range(0, thread_num):
