@@ -294,6 +294,8 @@ class DispatchCenter:
         :return:
         """
 
+        self._dataProvide.start()
+
         start_time_log = 'start' + ' ' + time.strftime('%Y-%m-%d %H:%M:%S')
 
         self._do_action_method(method_name='init_action')

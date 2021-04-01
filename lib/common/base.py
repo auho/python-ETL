@@ -7,14 +7,21 @@ FILE = os.path.abspath(sys.argv[0])
 FILE_PATH = os.path.dirname(FILE)
 MODULE_PATH = FILE_PATH
 
+maxDepth = 5
 is_module_path = False
-while not is_module_path:
+while not is_module_path and maxDepth > 0:
     module_lib_path = MODULE_PATH + '/lib'
     module_conf_path = MODULE_PATH + '/conf'
     if os.path.isdir(module_lib_path) and os.path.isdir(module_conf_path):
         is_module_path = True
     else:
         MODULE_PATH = os.path.dirname(MODULE_PATH)
+
+    maxDepth -= 1
+
+if is_module_path is False:
+    print("module path is error. lib and conf not exists!!")
+    exit(1)
 
 __file_path = os.path.abspath(__file__)
 __common_path = os.path.dirname(__file_path)

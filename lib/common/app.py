@@ -5,7 +5,7 @@ from .conf import MysqlConf
 from lib.db import mysql
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--config", help="config file name", type=str, required=True)
+parser.add_argument("--config", help="config file name", type=str, required=False, default='office')
 input_args = parser.parse_args()
 
 

@@ -23,7 +23,7 @@ class Table(TableDDl):
         else:
             self._tags = [self.KeyWord]
 
-        self._init()
+        self._generate_ddl_rule()
 
     def get_table_name(self):
         return self._tableName
@@ -31,9 +31,10 @@ class Table(TableDDl):
     def build(self, db):
         self.DDLRule.build(db=db)
 
-    def _init(self):
+    def _generate_ddl_rule(self):
         self.DDLRule = mysql.DDLCreate(table_name=self._tableName)
 
+        self.DDLRule.add_string(name=self._tagName)
         self._add_fields(ddl_rule=self.DDLRule)
         self.DDLRule.add_int(name=self.KeyWord + '_len')
         self.DDLRule.add_unique_index(name=self._tagName + '_' + self.KeyWord)
