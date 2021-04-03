@@ -3,11 +3,12 @@ from lib.workflow.func.func import FuncTransfer
 
 
 class Action(mysql.ActionInsert):
-    def __init__(self, db, table_name, fields, fields_alias=None, database_name=None, size=1000, is_truncate=True, kwargs=None):
+    def __init__(self, db, table_name, fields, fields_alias=None, copy_alias=None, database_name=None, size=1000, is_truncate=True, kwargs=None):
         super().__init__(db, table_name, fields, database_name, size, is_truncate, kwargs)
 
         self._fields = fields
         self._fields_alias = fields_alias
+        self._copy_alias = copy_alias
         self._func = None  # type: FuncTransfer
 
     def init_action(self):
@@ -37,6 +38,9 @@ class Action(mysql.ActionInsert):
                 if field in self._fields_alias:
                     self._fields[i] = self._fields_alias[field]
 
+        if self._copy_alias:
+            self._fields.extend(list(self._copy_alias.values()))
+
     def do(self, item):
         try:
             item = self._func.transfer(item=item)  # type:dict
@@ -48,6 +52,10 @@ class Action(mysql.ActionInsert):
 
                         if field in item:
                             item[field_alias] = item[field]
+
+                if self._copy_alias:
+                    for field, field_alias in self._copy_alias.items():
+                        item[field_alias] = item[field]
 
                 new_item = []
                 for field in self._fields:

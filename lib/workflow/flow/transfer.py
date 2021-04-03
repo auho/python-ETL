@@ -16,7 +16,7 @@ class TagFlow:
         process.DispatchCenter.dispatch(dp=dp, actions=actions)
 
     @staticmethod
-    def flow(db: Mysql, table_name, tag_table_name, id_name, func: FuncTransfer, fields=None, fields_alias=None, exclude_fields=None,
+    def flow(db: Mysql, table_name, tag_table_name, id_name, func: FuncTransfer, fields=None, fields_alias=None, exclude_fields=None, copy_alias=None,
              is_truncate=True, database_name=None):
         if fields is None:
             fields = db.get_table_columns(table_name=table_name, database_name=database_name)
@@ -25,8 +25,8 @@ class TagFlow:
         if exclude_fields:
             action_fields = list(set(action_fields) - set(exclude_fields))
 
-        action = transfer.Action(db=db, table_name=tag_table_name, fields=action_fields, fields_alias=fields_alias, is_truncate=is_truncate,
-                                 database_name=database_name, size=2000)
+        action = transfer.Action(db=db, table_name=tag_table_name, fields=action_fields, fields_alias=fields_alias, copy_alias=copy_alias,
+                                 is_truncate=is_truncate, database_name=database_name, size=2000)
         action.add_func(func_object=func)
 
         fields.append(id_name)

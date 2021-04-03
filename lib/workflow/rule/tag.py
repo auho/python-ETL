@@ -407,6 +407,12 @@ class TagRule:
     def get_args(self):
         return self._args
 
+    def get_keyword_name(self):
+        return self._keywordName
+
+    def get_all_keyword(self, content):
+        return self._tag(content=content)
+
     def main(self):
         self._check()
 

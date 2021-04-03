@@ -1,6 +1,6 @@
 import pandas
-from .dml import Table
-from .common import CommonQuery
+from lib.query.dml import Table, TableJoin
+from lib.query.common import CommonQuery
 
 
 class Model:
@@ -45,6 +45,18 @@ class TableTopGather:
         all_df = None
         for table in self._tables:
             df = query.get(name='', sql=table.sql(), is_to_excel=False)
+            if all_df is None:
+                all_df = df
+            else:
+                all_df = pandas.concat([all_df, df])
+
+        query.to_excel(name=name, df=all_df)
+
+    def top_gather_with_left_join(self, name, query: CommonQuery, table_left: Table, table_left_on):
+        all_df = None
+        for table in self._tables:
+            sql = TableJoin().table(table).table_left(table_left, table_left_on).sql()
+            df = query.get(name='', sql=sql, is_to_excel=False)
             if all_df is None:
                 all_df = df
             else:

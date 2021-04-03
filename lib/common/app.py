@@ -62,6 +62,9 @@ class App:
         if self.ENV == 'dev':
             self.ENV_DEBUG = True
 
+    def get_db(self):
+        return self.mysqlDb
+    
     def get_sub_import(self, sub):
         return self.moduleImport + '.' + sub
 
