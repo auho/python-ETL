@@ -28,6 +28,9 @@ class Table(TableDDl):
     def get_table_name(self):
         return self._tableName
 
+    def get_rule_table_name(self):
+        return self._tableName
+
     def build(self, db):
         self.DDLRule.build(db=db)
 

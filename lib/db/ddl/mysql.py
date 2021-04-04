@@ -22,20 +22,20 @@ class DDLBuild(metaclass=ABCMeta):
         method = getattr(self, method_name)
         method(name=name)
 
-    def add_id(self, name, length=20):
-        sql = self._DDL.alter_id(table_name=self._tableName, name=name, length=length)
+    def add_id(self, name, length=20, default=0):
+        sql = self._DDL.alter_id(table_name=self._tableName, name=name, length=length, default=default)
         self._add_sql(sql=sql)
 
-    def add_string(self, name, length=30):
-        sql = self._DDL.alter_string(table_name=self._tableName, name=name, length=length)
+    def add_string(self, name, length=30, default=''):
+        sql = self._DDL.alter_string(table_name=self._tableName, name=name, length=length, default=default)
         self._add_sql(sql=sql)
 
-    def add_int(self, name, length=11):
-        sql = self._DDL.alter_int(table_name=self._tableName, name=name, length=length)
+    def add_int(self, name, length=11, default=0):
+        sql = self._DDL.alter_int(table_name=self._tableName, name=name, length=length, default=default)
         self._add_sql(sql=sql)
 
-    def add_decimal(self, name, m=10, d=0):
-        sql = self._DDL.alter_decimal(table_name=self._tableName, name=name, m=m, d=d)
+    def add_decimal(self, name, m=10, d=0, default=0):
+        sql = self._DDL.alter_decimal(table_name=self._tableName, name=name, m=m, d=d, default=default)
         self._add_sql(sql=sql)
 
     def add_text(self, name):
@@ -91,20 +91,20 @@ class DDLGenerate:
         return f"CREATE TABLE `{table_name}` (id INT(11) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT) ENGINE = `MyISAM` DEFAULT CHARSET=utf8mb4 COLLATE utf8mb4_general_ci"
 
     @staticmethod
-    def alter_id(table_name, name, length=20):
-        return f"ALTER TABLE `{table_name}` ADD `{name}` BIGINT({length})  NOT NULL DEFAULT 0"
+    def alter_id(table_name, name, length=20, default=0):
+        return f"ALTER TABLE `{table_name}` ADD `{name}` BIGINT({length})  NOT NULL DEFAULT {default}"
 
     @staticmethod
-    def alter_int(table_name, name, length=11):
-        return f"ALTER TABLE `{table_name}` ADD `{name}` INT({length})  NOT NULL DEFAULT 0"
+    def alter_int(table_name, name, length=11, default=0):
+        return f"ALTER TABLE `{table_name}` ADD `{name}` INT({length})  NOT NULL DEFAULT {default}"
 
     @staticmethod
-    def alter_string(table_name, name, length):
-        return f"ALTER TABLE `{table_name}` ADD `{name}` VARCHAR({length})  NOT NULL  DEFAULT ''"
+    def alter_string(table_name, name, length, default=''):
+        return f"ALTER TABLE `{table_name}` ADD `{name}` VARCHAR({length})  NOT NULL  DEFAULT '{default}'"
 
     @staticmethod
-    def alter_decimal(table_name, name, m, d):
-        return f"ALTER TABLE `{table_name}` ADD `{name}` DECIMAL({m},{d}) NOT NULL DEFAULT 0"
+    def alter_decimal(table_name, name, m, d, default=0):
+        return f"ALTER TABLE `{table_name}` ADD `{name}` DECIMAL({m},{d}) NOT NULL DEFAULT {default}"
 
     @staticmethod
     def alter_text(table_name, name):

@@ -91,6 +91,8 @@ class TagRule:
         self._badKeywordDict = {}
         self._fixedName = []  # type: list
 
+        self._all_matched_keywords = None
+
         self.main()
 
     def _check(self):
@@ -293,6 +295,8 @@ class TagRule:
         :param content: 内容
         :return: keywords
         """
+        self._all_matched_keywords = None
+
         if not content:
             return False
 
@@ -312,6 +316,8 @@ class TagRule:
 
         if len(keywords) <= 0:
             return False
+
+        self._all_matched_keywords = list(set(keywords))
 
         return keywords
 
@@ -407,11 +413,14 @@ class TagRule:
     def get_args(self):
         return self._args
 
+    def get_name(self):
+        return self._name
+
     def get_keyword_name(self):
         return self._keywordName
 
-    def get_all_keyword(self, content):
-        return self._tag(content=content)
+    def get_all_matched_keywords(self):
+        return self._all_matched_keywords
 
     def main(self):
         self._check()
