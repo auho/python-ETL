@@ -12,14 +12,14 @@ class XlsxImport:
         self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=header, dtype=dtype, nrows=nrows)
         self._set_df(fixed=fixed)
 
-    def read_sheet_with_columns(self, sheet_name, start_row, columns, dtype=None, fixed=None, nrows=None):
+    def read_sheet_with_columns(self, sheet_name, start_row, columns, start_col=0, dtype=None, fixed=None, nrows=None):
         """
         sheet_name 从 0 开始
         start_row 从 0 开始
 
         """
         self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=None, dtype=dtype, nrows=nrows)
-        self._df = self._df.iloc[start_row:, :len(columns)]
+        self._df = self._df.iloc[start_row:, start_col:start_col + len(columns)]
         self._df.columns = columns
         self._set_df(fixed=fixed)
 

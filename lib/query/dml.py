@@ -20,7 +20,7 @@ class Table(Model):
     """
 
     def __init__(self, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias=None, order_dict=None, limit='',
-                 table_sql=None):
+                 select_alias=None, table_sql=None):
         """
 
         :param table_name: left join table name
@@ -29,7 +29,7 @@ class Table(Model):
         :param group_fields: [key name]
         :param aggregation_dict: {'COUNT(*)': '评论量'}
         :param group_alias: 分组字典 key name:key title
-        :param order_dict: 分组字典 key name:key sort
+        :param order_dict: 排序字典 key name:key sort
         :param limit: str
         :param table_sql: 直接使用 sql 结果作为表，表名为 table_name
 
@@ -46,6 +46,7 @@ class Table(Model):
         self._group_alias_dict = group_alias  # type:dict
         self._order_dict = order_dict  # type:dict
         self.limit = limit
+        self._select_alias = select_alias
         self.table_sql = table_sql
 
         self.select_list = []
@@ -92,9 +93,9 @@ class Table(Model):
     def _parse_where(self, where):
         if where:
             if self.where:
-                self.where = self._parse_field_exp(where, self._table_name)
-            else:
                 self.where = ' AND ' + self._parse_field_exp(where, self._table_name)
+            else:
+                self.where = self._parse_field_exp(where, self._table_name)
 
     def _parse_group(self, group):
         if group:
@@ -118,6 +119,7 @@ class Table(Model):
 
     def parse(self):
         self._parse_select(select=self._select)
+        self._parse_select(select=self._select_alias)
         self._parse_where(where=self.where)
         self._parse_group(group=self._group_fields)
         self._parse_select(select=self._aggregation_dict)
@@ -239,7 +241,7 @@ class TableJoin(Model):
 
     def _limit_string(self):
         if self._limit:
-            return ' LIMIT ' + self._limit
+            return ' LIMIT ' + str(self._limit)
         else:
             return ''
 

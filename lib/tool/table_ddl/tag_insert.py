@@ -26,4 +26,4 @@ class Table(rule.Table):
         self.DDLTagTable.add_id(name=self._keyid)
         self.DDLTagTable.add_string(name=self._tagName)
         self._add_fields(ddl_rule=self.DDLTagTable)
-        self.DDLTagTable.add_int(name='keyword_num')
+        self.DDLTagTable.add_int(name=f"{self._tagName}_{self.KeyWord}_num")

@@ -21,6 +21,29 @@ class FuncTagInsert(FuncInsert):
         return self._rule.tag_insert(content=content)
 
 
+class FuncTagInsertMultiField(FuncInsert):
+    def __init__(self, keys, rule):
+        self._rule = rule
+        self._keys = keys
+
+    def get_keys(self):
+        return self._rule.get_keys()
+
+    def get_fields(self):
+        return self._keys
+
+    def insert(self, item):
+        content = ''
+        for key in self._keys:
+            if key in item:
+                if item[key] is None or item[key] == '':
+                    continue
+
+                content += ' ' + item[key]
+
+        return self._rule.tag_insert(content=content)
+
+
 class FuncTagUpdate(FuncUpdate):
     def __init__(self, key, rules):
         self._rules = rules
