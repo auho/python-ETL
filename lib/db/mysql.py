@@ -52,6 +52,15 @@ class Mysql:
             self._error(sql=sql)
             raise e
 
+    def get_column_with_list(self, sql, field):
+        res = self.get_all(sql=sql)
+
+        items = []
+        for data in res:
+            items.append(data[field])
+
+        return items
+
     def update_by_data(self, table_name, id_name, item, database_name=None):
         res = self._update_prepare(database_name=database_name, table_name=table_name, item=item, id_name=id_name)
         return self.execute(*res)

@@ -29,22 +29,40 @@ class Model:
 
 
 class TableTopGather:
-    def __init__(self, key, values, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias_dict=None,
-                 order_dict=None, limit='', table_sql=None):
+    """
+    gather_items:   {
+                        key : [value, value, ...],
+                    }
 
-        self._tables = []
+    """
 
-        for value in values:
-            table = Table(table_name=table_name, select=select, where=where, group_fields=group_fields, aggregation_dict=aggregation_dict,
-                          group_alias=group_alias_dict, order_dict=order_dict, limit=limit, table_sql=table_sql)
-            table.where_and(where=f"`{key}` = '{value}'")
+    def top_gather(self, query: CommonQuery, sheet_name, sql, gather_items):
+        gather_where_items = self._generate_gather_items_for_items(gather_items=gather_items)
 
-            self._tables.append(table)
+        return self._top_gather(query=query, sheet_name=sheet_name, sql=sql, gather_where_items=gather_where_items)
 
-    def top_gather(self, sheet_name, query: CommonQuery):
+    def top_gather_segmentation(self, query: CommonQuery, sql, segmentation_key, segmentation_values, gather_items=None):
+        for value in segmentation_values:
+            gather_all_where_items = []
+            if gather_items:
+                gather_where_items = self._generate_gather_items_for_items(gather_items=gather_items)
+                for gather_where_item in gather_where_items:
+                    gather_where_item[segmentation_key] = value
+                    gather_all_where_items.append(gather_where_item)
+            else:
+                gather_all_where_items.append({segmentation_key, value})
+
+            self._top_gather(query=query, sheet_name=segmentation_key, sql=sql, gather_where_items=gather_all_where_items)
+
+    @staticmethod
+    def _top_gather(query: CommonQuery, sheet_name, sql, gather_where_items):
         all_df = None
-        for table in self._tables:
-            df = query.get(name='', sql=table.sql(), is_to_excel=False)
+        for item in gather_where_items:
+            exec_sql = sql
+            for key, value in item.items():
+                exec_sql = exec_sql.replace(f"##{key}##", value)
+
+            df = query.get(name='', sql=exec_sql, is_to_excel=False)
             if all_df is None:
                 all_df = df
             else:
@@ -52,18 +70,39 @@ class TableTopGather:
 
         query.to_excel(name=sheet_name, df=all_df)
 
-    def top_gather_with_left_join(self, sheet_name, query: CommonQuery, table_left_list):
-        all_df = None
-        for table in self._tables:
-            tj = TableJoin().table(table)
-            for table_left in table_left_list:
-                tj.table_left(table_left[0], table_left[1])
+    @staticmethod
+    def _generate_gather_items_for_items(gather_items):
+        all_items = []
+        items = []
+        for key, values in gather_items.items():
+            all_items = []
 
-            sql = tj.sql()
-            df = query.get(name='', sql=sql, is_to_excel=False)
-            if all_df is None:
-                all_df = df
+            if items:
+                for item in items:
+                    for value in values:
+                        item[key] = value
+                        all_items.append(item)
             else:
-                all_df = pandas.concat([all_df, df])
+                for value in values:
+                    all_items.append({key: value})
 
-        query.to_excel(name=sheet_name, df=all_df)
+            items = all_items.copy()
+
+        return all_items
+
+    @staticmethod
+    def _generate_gather_items_for_where(gather_items):
+        all_where_items = []
+        where_items = []
+        for key, values in gather_items.items():
+            if where_items:
+                for where_item in where_items:
+                    for value in values:
+                        all_where_items.append(f"{where_item} AND `{key}` = '{value}'")
+            else:
+                for value in values:
+                    all_where_items.append(f"`{key}` = '{value}'")
+
+            where_items = all_where_items.copy()
+
+        return all_where_items

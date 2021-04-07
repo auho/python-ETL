@@ -40,7 +40,7 @@ class Table(Model):
         """
         self._table_name = table_name
         self._select = select
-        self.where = where  # type:str
+        self._where = where  # type:str
         self._group_fields = group_fields  # type:list
         self._aggregation_dict = aggregation_dict  # type:dict
         self._group_alias_dict = group_alias  # type:dict
@@ -50,6 +50,7 @@ class Table(Model):
         self.table_sql = table_sql
 
         self.select_list = []
+        self.where_string = ''
         self.group_list = []
         self.aggregation_list = []
         self.order_list = []
@@ -92,10 +93,10 @@ class Table(Model):
 
     def _parse_where(self, where):
         if where:
-            if self.where:
-                self.where = ' AND ' + self._parse_field_exp(where, self._table_name)
+            if self.where_string:
+                self.where_string = ' AND ' + self._parse_field_exp(where, self._table_name)
             else:
-                self.where = self._parse_field_exp(where, self._table_name)
+                self.where_string = self._parse_field_exp(where, self._table_name)
 
     def _parse_group(self, group):
         if group:
@@ -120,7 +121,7 @@ class Table(Model):
     def parse(self):
         self._parse_select(select=self._select)
         self._parse_select(select=self._select_alias)
-        self._parse_where(where=self.where)
+        self._parse_where(where=self._where)
         self._parse_group(group=self._group_fields)
         self._parse_select(select=self._aggregation_dict)
         self._parse_order(order=self._order_dict)
@@ -177,7 +178,7 @@ class TableJoin(Model):
 
         self.select(table.select_list)
         self.select(table.aggregation_list)
-        self.where(table.where)
+        self.where(table.where_string)
         self.group(table.group_list)
         self.order(table.order_list)
         self.limit(table.limit)
