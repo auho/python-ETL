@@ -21,6 +21,9 @@ class Action(mysql.ActionInsert):
         if not self._func:
             raise Exception('func is error!')
 
+    def get_fields(self):
+        return []
+
     def add_func(self, func_object):
         if self._func:
             raise Exception('func is exists!')

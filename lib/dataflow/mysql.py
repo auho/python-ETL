@@ -1,5 +1,6 @@
-from . import process
-from ..db import mysql
+from abc import ABCMeta, abstractmethod
+from lib.dataflow import process
+from lib.db import mysql
 
 
 class DataProvide(process.DataProvider):
@@ -82,7 +83,7 @@ class DataProvide(process.DataProvider):
         return sql
 
 
-class ActionInsert(process.Action):
+class ActionInsert(metaclass=ABCMeta, process.Action):
     """
     action for mysql
     """
@@ -96,6 +97,10 @@ class ActionInsert(process.Action):
         self.table_name = table_name
         self.size = size
         self.is_truncate = is_truncate
+
+    @abstractmethod
+    def get_fields(self):
+        pass
 
     def before_action(self):
         if self.is_truncate:

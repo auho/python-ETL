@@ -143,11 +143,15 @@ class Action(DataFlow):
         commonTool.Tool.log(self.__module__ + '.' + self.__class__.__name__ + '::' + info)
 
 
-class MultiAction(Action):
+class MultiAction(metaclass=ABCMeta, Action):
     def __init__(self, kwargs=None):
         super().__init__(kwargs=kwargs)
 
         self._actions = []
+
+    @abstractmethod
+    def get_fields(self):
+        pass
 
     def _add_action(self, action):
         self._actions.append(action)

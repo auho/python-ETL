@@ -170,7 +170,6 @@ class CommonQuery(BaseQuery):
         return self._execute_update_many(table_name=table_name, keyid=keyid, items=items, db=self.mysqlDb, database_name=database_name)
 
     def get(self, name, sql, to_numeric_fields=None, is_to_excel=True):
-
         if to_numeric_fields is None:
             to_numeric_fields = []
 
@@ -179,7 +178,34 @@ class CommonQuery(BaseQuery):
         if target_df is False:
             return None
 
-        all_field = target_df.columns
+        target_df = self._handle_df(df=target_df, to_numeric_fields=to_numeric_fields)
+
+        if is_to_excel:
+            self.to_excel(name, target_df)
+
+        return target_df
+
+    def get_all_by_sql(self, sql):
+        return self._get_all(sql, self.mysqlDb)
+
+    def get_df_by_sql(self, sql, to_numeric_fields=None):
+        """
+        :param sql: sql for data
+        :param to_numeric_fields:
+        :return:
+        """
+        target_df = self._get_df_from_sql(name='select by sql', sql=sql, db=self.mysqlDb, db_conf=self.mysqlDbConf, is_force=True)
+
+        if target_df is False:
+            return pandas.DataFrame([])
+        else:
+            target_df = self._handle_df(df=target_df, to_numeric_fields=to_numeric_fields)
+
+        return target_df
+
+    @staticmethod
+    def _handle_df(df, to_numeric_fields):
+        all_field = df.columns
 
         # 转换为数字类型
         if to_numeric_fields:
@@ -191,26 +217,6 @@ class CommonQuery(BaseQuery):
 
             if need_to_numeric_fields:
                 # errors='ignore'
-                target_df[need_to_numeric_fields] = target_df[need_to_numeric_fields].apply(pandas.to_numeric)
+                df[need_to_numeric_fields] = df[need_to_numeric_fields].apply(pandas.to_numeric)
 
-        if is_to_excel:
-            self.to_excel(name, target_df)
-
-        return target_df
-
-    def get_all_by_sql(self, sql):
-        return self._get_all(sql, self.mysqlDb)
-
-    def get_df_by_sql(self, sql):
-        """
-
-        :param sql: sql for data
-        :return:
-        """
-
-        target_df = self._get_df_from_sql(name='select by sql', sql=sql, db=self.mysqlDb, db_conf=self.mysqlDbConf, is_force=True)
-
-        if target_df is False:
-            return pandas.DataFrame([])
-
-        return target_df
+        return df
