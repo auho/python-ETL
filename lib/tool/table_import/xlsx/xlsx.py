@@ -8,11 +8,12 @@ class XlsxImport:
         self._xlsx = pandas.io.excel.ExcelFile(xlsx_file)
         print(f"xlsx file:: {xlsx_file}")
 
-    def read_sheet(self, sheet_name, fixed=None, header=0, dtype=None, nrows=None):
-        self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=header, dtype=dtype, nrows=nrows)
+    def read_sheet(self, sheet_name, fixed=None, header=0, usecols=None, dtype=None, nrows=None):
+        self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=header, usecols=usecols, dtype=dtype,
+                                     nrows=nrows)
         self._set_df(fixed=fixed)
 
-    def read_sheet_with_columns(self, sheet_name, start_row, columns, start_col=0, dtype=None, fixed=None, nrows=None):
+    def read_sheet_with_columns(self, sheet_name, columns, start_row=1, start_col=0, dtype=None, fixed=None, nrows=None):
         """
         sheet_name 从 0 开始
         start_row 从 0 开始

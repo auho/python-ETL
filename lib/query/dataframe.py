@@ -27,8 +27,17 @@ class Model:
         else:
             return all_df.merge(df, how='outer', on=merge_index)
 
+    @staticmethod
+    def _concat(all_df, df):
+        if all_df is None:
+            all_df = df
+        else:
+            all_df = pandas.concat([all_df, df])
 
-class TableTopGather:
+        return all_df
+
+
+class TableTopGather(Model):
     """
     gather_items:   {
                         key : [value, value, ...],
@@ -39,23 +48,41 @@ class TableTopGather:
     def top_gather(self, query: CommonQuery, sheet_name, sql, gather_items):
         gather_where_items = self._generate_gather_items_for_items(gather_items=gather_items)
 
-        return self._top_gather(query=query, sheet_name=sheet_name, sql=sql, gather_where_items=gather_where_items)
+        return self._top_gather_to_excel(query=query, sheet_name=sheet_name, sql=sql, gather_where_items=gather_where_items)
+
+    def top_gather_segmentation_merge_for_one(self, query: CommonQuery, sheet_name, sql, segmentation_key, segmentation_values, merge_index,
+                                              gather_items=None):
+        all_df = None
+        for value, gather_where_items in self._generate_segmentation_gather_item(segmentation_key, segmentation_values, gather_items):
+            df = self._get_data_with_df(query=query, sql=sql, gather_where_items=gather_where_items)
+            all_df = self._merge(all_df=all_df, df=df, merge_index=merge_index)
+
+        query.to_excel(name=sheet_name, df=all_df)
 
     def top_gather_segmentation(self, query: CommonQuery, sql, segmentation_key, segmentation_values, gather_items=None):
+        for value, gather_all_where_items in self._generate_segmentation_gather_item(segmentation_key, segmentation_values, gather_items):
+            self._top_gather_to_excel(query=query, sheet_name=value, sql=sql, gather_where_items=gather_all_where_items)
+
+    def _generate_segmentation_gather_item(self, segmentation_key, segmentation_values, gather_items):
         for value in segmentation_values:
-            gather_all_where_items = []
+            gather_whole_where_items = []
             if gather_items:
                 gather_where_items = self._generate_gather_items_for_items(gather_items=gather_items)
                 for gather_where_item in gather_where_items:
                     gather_where_item[segmentation_key] = value
-                    gather_all_where_items.append(gather_where_item)
+                    gather_whole_where_items.append(gather_where_item)
             else:
-                gather_all_where_items.append({segmentation_key, value})
+                gather_whole_where_items.append({segmentation_key: value})
 
-            self._top_gather(query=query, sheet_name=segmentation_key, sql=sql, gather_where_items=gather_all_where_items)
+            yield value, gather_whole_where_items
+
+    def _top_gather_to_excel(self, query: CommonQuery, sheet_name, sql, gather_where_items):
+        df = self._get_data_with_df(query=query, sql=sql, gather_where_items=gather_where_items)
+
+        query.to_excel(name=sheet_name, df=df)
 
     @staticmethod
-    def _top_gather(query: CommonQuery, sheet_name, sql, gather_where_items):
+    def _get_data_with_df(query: CommonQuery, sql, gather_where_items):
         all_df = None
         for item in gather_where_items:
             exec_sql = sql
@@ -68,7 +95,7 @@ class TableTopGather:
             else:
                 all_df = pandas.concat([all_df, df])
 
-        query.to_excel(name=sheet_name, df=all_df)
+        return all_df
 
     @staticmethod
     def _generate_gather_items_for_items(gather_items):

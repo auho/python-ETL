@@ -45,17 +45,19 @@ class Action(mysql.ActionInsert):
         try:
             item = self._func.transfer(item=item)  # type:dict
             if item:
+                copy_item = item.copy()
+
                 if self._fields_alias:
                     for field, field_alias in self._fields_alias.items():
                         if field == field_alias:
                             continue
 
                         if field in item:
-                            item[field_alias] = item[field]
+                            item[field_alias] = copy_item[field]
 
                 if self._copy_alias:
                     for field, field_alias in self._copy_alias.items():
-                        item[field_alias] = item[field]
+                        item[field_alias] = copy_item[field]
 
                 new_item = []
                 for field in self._fields:

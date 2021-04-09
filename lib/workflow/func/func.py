@@ -10,6 +10,12 @@ class Func(metaclass=ABCMeta):
     pass
 
 
+class FuncEmpty(Func):
+    @abstractmethod
+    def do(self):
+        pass
+
+
 class FuncVoid(Func):
     @abstractmethod
     def get_fields(self):

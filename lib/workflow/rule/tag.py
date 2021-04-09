@@ -93,6 +93,9 @@ class TagRule:
 
         self._all_matched_keywords = None
 
+        self._badGroupNames = dict()
+        self._badGroupNameIndex = 0
+
         self.main()
 
     def _check(self):
@@ -395,15 +398,10 @@ class TagRule:
 
         return good_keyword
 
-    @staticmethod
-    def _change_bad_keyword(keyword):
-        keyword = keyword.replace('.', 'A1A')
-        keyword = keyword.replace(' ', 'A2A')
-        keyword = keyword.replace('+', 'A3A')
-        keyword = keyword.replace('(', 'A4A')
-        keyword = keyword.replace(')', 'A5A')
-        keyword = keyword.replace('-', 'A6A')
-        keyword = keyword.replace('?', 'A7A')
+    def _change_bad_keyword(self, keyword):
+        if re.match('^[a-zA-Z0-9_]+$', keyword) is None:
+            self._badGroupNameIndex += 1
+            keyword = f"_aAa{self._badGroupNameIndex}aAa_"
 
         return keyword
 

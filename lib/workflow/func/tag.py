@@ -33,6 +33,9 @@ class FuncTagInsertMultiField(FuncInsert):
         return self._keys
 
     def insert(self, item):
+        return self._func_insert(item=item)
+
+    def _func_insert(self, item):
         content = ''
         for key in self._keys:
             if key in item:
