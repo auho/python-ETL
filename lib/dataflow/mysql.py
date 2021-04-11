@@ -83,7 +83,7 @@ class DataProvide(process.DataProvider):
         return sql
 
 
-class ActionInsert(metaclass=ABCMeta, process.Action):
+class ActionInsert(process.Action, metaclass=ABCMeta):
     """
     action for mysql
     """

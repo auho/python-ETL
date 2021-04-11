@@ -143,7 +143,7 @@ class Action(DataFlow):
         commonTool.Tool.log(self.__module__ + '.' + self.__class__.__name__ + '::' + info)
 
 
-class MultiAction(metaclass=ABCMeta, Action):
+class MultiAction(Action, metaclass=ABCMeta):
     def __init__(self, kwargs=None):
         super().__init__(kwargs=kwargs)
 

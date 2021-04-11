@@ -1,4 +1,5 @@
 from abc import ABCMeta, abstractmethod
+from lib.workflow.tool.item import get_content_from_item_by_keys
 
 """
 fields 查询字段
@@ -7,7 +8,9 @@ keys 插入字段
 
 
 class Func(metaclass=ABCMeta):
-    pass
+    @staticmethod
+    def _get_content(keys, item):
+        return get_content_from_item_by_keys(keys=keys, item=item)
 
 
 class FuncEmpty(Func):

@@ -3,46 +3,24 @@ from .func import FuncInsert, FuncUpdate
 
 class FuncTagInsert(FuncInsert):
     def __init__(self, key, rule):
-        self._rule = rule
         self._key = key
-
-    def get_fields(self):
-        return [self._key]
-
-    def get_keys(self):
-        return self._rule.get_keys()
-
-    def insert(self, item):
-        if self._key not in item:
-            return None
-
-        content = item[self._key]
-
-        return self._rule.tag_insert(content=content)
-
-
-class FuncTagInsertMultiField(FuncInsert):
-    def __init__(self, keys, rule):
         self._rule = rule
-        self._keys = keys
+
+    def get_fields(self):
+        if type(self._key) == str:
+            return [self._key]
+        elif type(self._key) == list:
+            return self._key
+        else:
+            raise Exception("func key is error!")
 
     def get_keys(self):
         return self._rule.get_keys()
 
-    def get_fields(self):
-        return self._keys
-
     def insert(self, item):
-        return self._func_insert(item=item)
-
-    def _func_insert(self, item):
-        content = ''
-        for key in self._keys:
-            if key in item:
-                if item[key] is None or item[key] == '':
-                    continue
-
-                content += ' ' + item[key]
+        content = self._get_content(keys=self._key, item=item)
+        if content == '':
+            return None
 
         return self._rule.tag_insert(content=content)
 
