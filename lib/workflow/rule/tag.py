@@ -100,7 +100,9 @@ class TagRule:
 
     def _check(self):
         if self._name:
-            if self._shortTableName:
+            if self._tableName:
+                pass
+            elif self._shortTableName:
                 self._tableName = 'rule_' + self._shortTableName
             else:
                 self._tableName = 'rule_' + self._name
@@ -109,6 +111,7 @@ class TagRule:
 
             columns = self._db.get_table_columns(table_name=self._tableName, database_name=self._databaseName)
             if not columns:
+                print(self._tableName)
                 raise Exception('rule table columns is error!')
 
             self._tagsName = [x for x in columns if x.find(self._name) == 0 and x != self._keywordName]

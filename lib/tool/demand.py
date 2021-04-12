@@ -1,4 +1,5 @@
 import os
+import inspect
 import importlib
 import threading
 import queue
@@ -40,6 +41,22 @@ class DemandApp:
     def __init__(self, app: App):
         self._APP = app
         self._run_items = []
+
+    def run_sibling_path_files(self, files_names, sibling_path):
+        stack = inspect.stack()
+        file_path = stack[1].filename
+        file_path = os.path.abspath(file_path)
+        path = os.path.dirname(file_path)
+        path = path.replace(self._APP.modulePath + '/', '')
+        self.run_path_files(files_names=files_names, path=path + '/' + sibling_path)
+
+    def run_sibling_path(self, sibling_path):
+        stack = inspect.stack()
+        file_path = stack[1].filename
+        file_path = os.path.abspath(file_path)
+        path = os.path.dirname(file_path)
+        path = path.replace(self._APP.modulePath + '/', '')
+        self.run_path(path=path + '/' + sibling_path)
 
     def run_path(self, path=None):
         all_files_import = self.get_files_import_of_path(path=path)

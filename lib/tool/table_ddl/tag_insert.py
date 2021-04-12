@@ -3,14 +3,16 @@ from lib.db.ddl import mysql
 
 
 class Table(rule.Table):
-    def __init__(self, table_name, keyid, tag_name, tags=None):
+    def __init__(self, table_name, keyid, tag_name, tags=None, rule_table_name_has_prefix=True):
         self._insertTableName = 'tag_' + table_name + '_' + tag_name
         self._keyid = keyid
 
         self.DDLTagTable = None  # type:mysql.DDLBuild
 
-        super().__init__(tag_name=tag_name, tags=tags)
-
+        if rule_table_name_has_prefix:
+            super().__init__(tag_name=tag_name, tags=tags, table_name=table_name)
+        else:
+            super().__init__(tag_name=tag_name, tags=tags)
         self._init()
 
     def get_table_name(self):

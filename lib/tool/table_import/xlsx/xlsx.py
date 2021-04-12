@@ -6,11 +6,17 @@ class XlsxImport:
     def __init__(self, xlsx_file):
         self._df = None  # type:pandas.DataFrame
         self._xlsx = pandas.io.excel.ExcelFile(xlsx_file)
+
+        self._origin_df_line_amount = 0
+
         print(f"xlsx file:: {xlsx_file}")
 
     def read_sheet(self, sheet_name, fixed=None, header=0, usecols=None, dtype=None, nrows=None):
         self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=header, usecols=usecols, dtype=dtype,
                                      nrows=nrows)
+
+        self._set_origin_df_line_amount()
+
         self._set_df(fixed=fixed)
 
     def read_sheet_with_columns(self, sheet_name, columns, start_row=1, start_col=0, dtype=None, fixed=None, nrows=None):
@@ -21,6 +27,7 @@ class XlsxImport:
         """
         self._df = pandas.read_excel(self._xlsx, sheet_name=self._get_sheet_name(sheet_name=sheet_name), header=None, dtype=dtype, nrows=nrows)
         self._df = self._df.iloc[start_row:, start_col:start_col + len(columns)]
+        self._set_origin_df_line_amount()
         self._df.columns = columns
         self._set_df(fixed=fixed)
 
@@ -56,7 +63,8 @@ class XlsxImport:
 
     def _state(self):
         print('columns:: ', self._df.columns)
-        print(f"line amount:: {self._df.index.size}")
+        print(f"origin line amount:: {self._origin_df_line_amount}")
+        print(f"line amount:: {self._get_df_line_amount()}")
 
     def _clean(self):
         self._df = None
@@ -83,3 +91,9 @@ class XlsxImport:
         if fixed:
             for k, v in fixed.items():
                 self._df[k] = v
+
+    def _set_origin_df_line_amount(self):
+        self._origin_df_line_amount = self._get_df_line_amount()
+
+    def _get_df_line_amount(self):
+        return self._df.index.size
