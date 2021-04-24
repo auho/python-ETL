@@ -50,7 +50,7 @@ def filter_regex_syntax_fun(keyword):
 
 class TagRule:
     def __init__(self, db, name=None, alias=None, fixed_tags=None, extra_tags=None, exclude_tags=None, keyword_fun_list=None, database_name=None,
-                 short_table_name=None, complete_keyword_name=None, complete_tags_name=None, complete_table_name=None):
+                 data_table_name=None, short_table_name=None, complete_keyword_name=None, complete_tags_name=None, complete_table_name=None):
         """
 
         :param db: 数据库
@@ -72,6 +72,7 @@ class TagRule:
         self._db = db
         self._name = name
         self._shortTableName = short_table_name
+        self._dataTableName = data_table_name
         self._tableName = complete_table_name
         self._keywordName = complete_keyword_name
         self._tagsName = complete_tags_name  # type: list
@@ -104,6 +105,8 @@ class TagRule:
                 pass
             elif self._shortTableName:
                 self._tableName = 'rule_' + self._shortTableName
+            elif self._dataTableName:
+                self._tableName = 'rule_' + self._dataTableName + '_' + self._name
             else:
                 self._tableName = 'rule_' + self._name
 

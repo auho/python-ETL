@@ -130,12 +130,15 @@ class Table(Model):
         self._parse_where(where=where)
 
     def get_table_name(self):
-        if self.table_sql is None:
-            table_name = f"`{self._table_name}`"
-        else:
-            table_name = f"({self.table_sql}) AS `{self._table_name}`"
+        return self._table_name
 
-        return table_name
+    def get_table_name_dml(self):
+        if self.table_sql is None:
+            table_dml = f"`{self._table_name}`"
+        else:
+            table_dml = f"({self.table_sql}) AS `{self._table_name}`"
+
+        return table_dml
 
     def sql(self):
         return TableJoin().table(table=self).sql()
@@ -158,18 +161,36 @@ class TableJoin(Model):
 
     def table(self, table: Table):
         self._add_table(table=table)
-        self._table_list.append(f"FROM {table.get_table_name()}")
+        self._table_list.append(f"FROM {table.get_table_name_dml()}")
 
         return self
 
     def table_left(self, table: Table, join_on):
         """
         :param table:
-        :param join_on: 全条件 `t`.`id` = `t1`.`id`
+        :param join_on:
+            全条件：`t`.`id` = `t1`.`id`
+            条件字段：['left id', 'current id']
+            条件字段 1：['left table', 'left id', 'current id']
+            条件字段 2：['left table', 'left id', 'right table', 'current id']
         """
 
         self._add_table(table=table)
-        self._table_list.append(f"LEFT JOIN {table.get_table_name()} ON {join_on}")
+        left_join_string = f'LEFT JOIN {table.get_table_name_dml()}'
+        left_join_on_string = ''
+
+        if type(join_on) == str:
+            left_join_on_string = join_on
+        elif type(join_on) == list and len(join_on) == 2:
+            left_join_on_string = f'`{self._tables[0].get_table_name()}`.`{join_on[0]}` = `{table.get_table_name()}`.`{join_on[1]}`'
+        elif type(join_on) == list and len(join_on) == 3:
+            left_join_on_string = f'`{join_on[0].get_table_name()}`.`{join_on[1]}` = `{table.get_table_name()}`.`{join_on[2]}`'
+        elif type(join_on) == list and len(join_on) == 4:
+            left_join_on_string = f'`{join_on[0].get_table_name()}`.`{join_on[1]}` = `{join_on[2].get_table_name()}`.`{join_on[3]}`'
+        else:
+            raise Exception("join on is error!")
+
+        self._table_list.append(left_join_string + ' ON ' + left_join_on_string)
 
         return self
 

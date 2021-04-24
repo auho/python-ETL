@@ -89,6 +89,13 @@ class TableTopGather(Model):
                 exec_sql = exec_sql.replace(f"##{key}##", value)
 
             df = query.get(name='', sql=exec_sql, is_to_excel=False)
+
+            if df is not None:
+                columns = list(df.columns)
+                for key, value in item.items():
+                    if key not in columns:
+                        df[key] = value
+
             if all_df is None:
                 all_df = df
             else:

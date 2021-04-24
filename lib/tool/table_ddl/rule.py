@@ -14,7 +14,7 @@ class Table(TableDDl):
         self.DDLRule = None  # type: mysql.DDLBuild
 
         if table_name:
-            self._tableName = self.TableRule + table_name
+            self._tableName = self.TableRule + table_name + '_' + tag_name
         else:
             self._tableName = self.TableRule + tag_name
 

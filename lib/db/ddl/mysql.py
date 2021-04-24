@@ -22,17 +22,26 @@ class DDLBuild(metaclass=ABCMeta):
         method = getattr(self, method_name)
         method(name=name)
 
-    def add_id(self, name, length=20, default=0):
+    def add_id(self, name, length=20, default=0, is_index=False):
         sql = self._DDL.alter_id(table_name=self._tableName, name=name, length=length, default=default)
         self._add_sql(sql=sql)
 
-    def add_string(self, name, length=30, default=''):
+        if is_index:
+            self.add_index(name=name)
+
+    def add_string(self, name, length=30, default='', is_index=False):
         sql = self._DDL.alter_string(table_name=self._tableName, name=name, length=length, default=default)
         self._add_sql(sql=sql)
 
-    def add_int(self, name, length=11, default=0):
+        if is_index:
+            self.add_index(name=name)
+
+    def add_int(self, name, length=11, default=0, is_index=False):
         sql = self._DDL.alter_int(table_name=self._tableName, name=name, length=length, default=default)
         self._add_sql(sql=sql)
+
+        if is_index:
+            self.add_index(name=name)
 
     def add_decimal(self, name, m=10, d=0, default=0):
         sql = self._DDL.alter_decimal(table_name=self._tableName, name=name, m=m, d=d, default=default)
