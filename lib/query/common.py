@@ -169,7 +169,7 @@ class CommonQuery(BaseQuery):
     def update_many(self, table_name, keyid, items, database_name=None):
         return self._execute_update_many(table_name=table_name, keyid=keyid, items=items, db=self.mysqlDb, database_name=database_name)
 
-    def get(self, name, sql, to_numeric_fields=None, is_to_excel=True):
+    def get(self, name, sql, to_numeric_fields=None, is_to_excel=True, df_apply_func=None):
         if to_numeric_fields is None:
             to_numeric_fields = []
 
@@ -178,7 +178,7 @@ class CommonQuery(BaseQuery):
         if target_df is False:
             return None
 
-        target_df = self._handle_df(df=target_df, to_numeric_fields=to_numeric_fields)
+        target_df = self._handle_df(df=target_df, to_numeric_fields=to_numeric_fields, apply_func=df_apply_func)
 
         if is_to_excel:
             self.to_excel(name, target_df)
@@ -204,7 +204,7 @@ class CommonQuery(BaseQuery):
         return target_df
 
     @staticmethod
-    def _handle_df(df, to_numeric_fields):
+    def _handle_df(df, to_numeric_fields, apply_func=None):
         all_field = df.columns
 
         # 转换为数字类型
@@ -218,5 +218,8 @@ class CommonQuery(BaseQuery):
             if need_to_numeric_fields:
                 # errors='ignore'
                 df[need_to_numeric_fields] = df[need_to_numeric_fields].apply(pandas.to_numeric)
+
+        if apply_func:
+            df = apply_func(df)
 
         return df
