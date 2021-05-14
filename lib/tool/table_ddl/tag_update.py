@@ -15,7 +15,7 @@ class Table(rule.Table):
     def get_table_name(self):
         return self._sourceTableName
 
-    def build(self, db):
+    def build(self, db, is_truncate_table=False):
         self.DDLSource.build(db=db)
         super().build(db=db)
 

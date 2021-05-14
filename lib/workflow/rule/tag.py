@@ -117,7 +117,7 @@ class TagRule:
                 print(self._tableName)
                 raise Exception('rule table columns is error!')
 
-            self._tagsName = [x for x in columns if x.find(self._name) == 0 and x != self._keywordName]
+            self._tagsName = [x for x in columns if x not in ['id', self._keywordName, 'keyword_len']]
         else:
             self._name = self._keywordName.replace('_keyword', '')
 

@@ -6,22 +6,18 @@ class Table(TableDDl):
     TableRule = 'rule_'
     KeyWord = 'keyword'
 
-    def __init__(self, tag_name, tags=None, table_name=None):
+    def __init__(self, tag_name, tags=None, complete_tags=None, table_name_prefix=None):
         self._tableName = None
         self._tagName = tag_name
         self._tags = tags  # type:list
+        self._completeTags = complete_tags  # type:list
 
         self.DDLRule = None  # type: mysql.DDLBuild
 
-        if table_name:
-            self._tableName = self.TableRule + table_name + '_' + tag_name
+        if table_name_prefix:
+            self._tableName = self.TableRule + table_name_prefix + '_' + tag_name
         else:
             self._tableName = self.TableRule + tag_name
-
-        if self._tags:
-            self._tags.append(self.KeyWord)
-        else:
-            self._tags = [self.KeyWord]
 
         self._generate_ddl_rule()
 
@@ -31,26 +27,37 @@ class Table(TableDDl):
     def get_rule_table_name(self):
         return self._tableName
 
-    def build(self, db):
+    def build(self, db, is_truncate_table=False):
+        if is_truncate_table:
+            db.drop(table_name=self._tableName)
+
         self.DDLRule.build(db=db)
+
+        return self
 
     def _generate_ddl_rule(self):
         self.DDLRule = mysql.DDLCreate(table_name=self._tableName)
 
-        self.DDLRule.add_string(name=self._tagName)
         self._add_fields(ddl_rule=self.DDLRule)
         self.DDLRule.add_int(name=self.KeyWord + '_len')
         self.DDLRule.add_unique_index(name=self._tagName + '_' + self.KeyWord)
 
     def _generate_keys(self):
-        fields = []
-        for key_name in self._tags:
-            if key_name:
-                key = self._tagName + '_' + key_name
-            else:
-                key = self._tagName
+        fields = [
+            [mysql.T_STRING, self._tagName]
+        ]
 
-            fields.append([mysql.T_STRING, key])
+        if self._tags:
+            for tag in self._tags:
+                key = self._tagName + '_' + tag
+
+                fields.append([mysql.T_STRING, key])
+
+        if self._completeTags:
+            for tag in self._completeTags:
+                fields.append([mysql.T_STRING, tag])
+
+        fields.append([mysql.T_STRING, self._tagName + '_' + self.KeyWord])
 
         return fields
 

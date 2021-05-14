@@ -105,7 +105,7 @@ class DDLGenerate:
 
     @staticmethod
     def alter_primary_id(table_name, name, length=20):
-        return f"ALTER TABLE `{table_name}` ADD `{name}` BIGINT({length}) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT"
+        return f"ALTER TABLE `{table_name}` ADD `{name}` BIGINT({length}) UNSIGNED NOT NULL PRIMARY KEY AUTO_INCREMENT FIRST"
 
     @staticmethod
     def alter_id(table_name, name, length=20, default=0):

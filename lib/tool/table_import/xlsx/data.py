@@ -3,4 +3,4 @@ from . import xlsx
 
 class XlsxImport(xlsx.XlsxImport):
     def handle(self):
-        pass
+        return self

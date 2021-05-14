@@ -19,6 +19,8 @@ class XlsxImport:
 
         self._set_df(fixed=fixed)
 
+        return self
+
     def read_sheet_with_columns(self, sheet_name, columns, start_row=1, start_col=0, dtype=None, fixed=None, nrows=None):
         """
         sheet_name 从 0 开始
@@ -30,6 +32,8 @@ class XlsxImport:
         self._set_origin_df_line_amount()
         self._df.columns = columns
         self._set_df(fixed=fixed)
+
+        return self
 
     def save(self, db: Mysql, table_name, is_truncate=True, is_replace=False):
         self._compare_diff_columns(db=db, table_name=table_name, df_columns=self._df.columns)
