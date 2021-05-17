@@ -93,6 +93,7 @@ class TagRule:
         self._fixedName = []  # type: list
 
         self._all_matched_keywords = None
+        self._all_matched_keywords_frequency = None
 
         self._badGroupNames = dict()
         self._badGroupNameIndex = 0
@@ -232,7 +233,14 @@ class TagRule:
         else:
             return item
 
-    def _get_tags_keys(self):
+    def _add_fixed_tags_dict(self, item: dict):
+        if self._fixed_tags:
+            item.update(self._fixed_tags)
+            return item
+        else:
+            return item
+
+    def get_tags_keys(self):
         return self._tagsName + self._fixedName
 
     def _tag(self, content):
@@ -240,7 +248,7 @@ class TagRule:
         if not keywords:
             return None
 
-        return self._generate_frequency(keywords=keywords)
+        return self._all_matched_keywords_frequency
 
     def _tag_update(self, content):
         keywords_frequency = self._tag(content=content)
@@ -283,7 +291,7 @@ class TagRule:
 
         all_items = {}
         for keyword, num in keywords_frequency.items():
-            tags = self._get_all_tags_by_keyword(keyword=keyword)
+            tags = self._get_keyword_all_tags(keyword=keyword)
             tags_string = ''.join(tags)
             keyword_num = keyword + ' ' + str(num)
             if tags_string in all_items:
@@ -305,6 +313,7 @@ class TagRule:
         :return: keywords
         """
         self._all_matched_keywords = None
+        self._all_matched_keywords_frequency = None
 
         if not content:
             return False
@@ -327,18 +336,15 @@ class TagRule:
             return False
 
         self._all_matched_keywords = list(set(keywords))
+        self._all_matched_keywords_frequency = self._generate_frequency(keywords=keywords)
 
         return keywords
 
     def _generate_keyword_num_insert_item(self, keyword, num):
-        tag_item = (keyword, num) + self._get_all_tags_by_keyword(keyword=keyword)
-
-        return self._add_fixed_tags_values(item=tag_item)
+        return (keyword, num) + self._get_keyword_all_tags(keyword=keyword)
 
     def _generate_keyword_insert_item(self, keyword):
-        tag_item = (keyword,) + self._get_all_tags_by_keyword(keyword=keyword)
-
-        return self._add_fixed_tags_values(item=tag_item)
+        return (keyword,) + self._get_keyword_all_tags(keyword=keyword)
 
     def _generate_keyword_update_item(self, keyword):
         update_item = dict()
@@ -361,12 +367,19 @@ class TagRule:
 
         return keywords_frequency
 
-    def _get_all_tags_by_keyword(self, keyword):
+    def _get_keyword_all_tags(self, keyword):
         tag_item = tuple()
         for tag_name in self._tagsName:
             tag_item = tag_item + (self._tagsDict[tag_name][keyword],)
 
-        return tag_item
+        return self._add_fixed_tags_values(item=tag_item)
+
+    def _get_keyword_all_tags_dict(self, keyword):
+        tag_item = dict()
+        for tag_name in self._tagsName:
+            tag_item[tag_name] = self._tagsDict[tag_name][keyword]
+
+        return self._add_fixed_tags_dict(item=tag_item)
 
     @staticmethod
     def _decide_multi_keywords(keywords_frequency):
@@ -425,6 +438,40 @@ class TagRule:
 
     def get_all_matched_keywords(self):
         return self._all_matched_keywords
+
+    def get_all_matched_keywords_frequency(self):
+        return self._all_matched_keywords_frequency
+
+    def get_all_tags(self, content):
+        """
+        [
+            {
+                keyword: "",
+                num: "",
+                tags:
+                    {
+                        tag_1: "",
+                        tag_2: "",
+                    } ...
+            }
+        ]
+        :param content:
+        :return:
+        """
+        keywords_frequency = self._tag(content=content)
+        if not keywords_frequency:
+            return False
+
+        items = []
+        for keyword, num in keywords_frequency.items():
+            tag_dict = dict()
+            tag_dict['keyword'] = keyword
+            tag_dict['num'] = num
+            tag_dict['tags'] = self._get_keyword_all_tags_dict(keyword=keyword)
+
+            items.append(tag_dict)
+
+        return items
 
     def main(self):
         self._check()

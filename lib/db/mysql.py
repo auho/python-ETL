@@ -120,7 +120,7 @@ class Mysql:
             self.cursor.execute(query=sql, args=args)
             self.db.commit()
 
-            return True
+            return self.cursor.rowcount
         except Exception as e:
             self.db.rollback()
             self._error(sql=sql, data=args)
