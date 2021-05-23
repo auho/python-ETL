@@ -116,10 +116,13 @@ class Table(Model):
                 self.group_list.append(key)
 
     def _parse_group_alias(self, group_alias):
-        for k, v in group_alias.items():
-            self.select_list.append(f"{k} AS '{v}'")
+        if group_alias:
+            for k, v in group_alias.items():
+                key = f"`{self._table_name}`.`{k}`"
 
-            self.group_list.append(k)
+                self.select_list.append(f"{key} AS `{v}`")
+
+                self.group_list.append(key)
 
     def _parse_order(self, order):
         if order:
