@@ -49,8 +49,9 @@ def filter_regex_syntax_fun(keyword):
 
 
 class TagRule:
-    def __init__(self, db, name=None, alias=None, fixed_tags=None, extra_tags=None, exclude_tags=None, keyword_fun_list=None, database_name=None,
-                 data_table_name=None, short_table_name=None, complete_keyword_name=None, complete_tags_name=None, complete_table_name=None):
+    def __init__(self, db, name=None, alias=None, fixed_tags=None, extra_tags=None, exclude_tags=None, keyword_fun_list=None, regex_func=None,
+                 database_name=None, data_table_name=None, short_table_name=None, complete_keyword_name=None, complete_tags_name=None,
+                 complete_table_name=None):
         """
 
         :param db: 数据库
@@ -81,6 +82,7 @@ class TagRule:
         self._extra_tags = extra_tags  # type:list
         self._exclude_tags = exclude_tags  # type:list
         self._keywordFunList = keyword_fun_list  # type: list
+        self._regex_func = regex_func
         self._databaseName = database_name
 
         self._sqlFieldAlias = {}  # type: dict
@@ -218,6 +220,10 @@ class TagRule:
             group_regex_list.append(f'(?P<{self._regexGroupName}>' + '|'.join(regex_list) + ')')
 
         self._regexString = '|'.join(group_regex_list)
+
+        if self._regex_func:
+            self._regexString = self._regex_func(self._regexString)
+
         self._pattern = re.compile(rf'{self._regexString}')
 
     def _get_alias(self, tag_name):
@@ -255,7 +261,7 @@ class TagRule:
         if not keywords_frequency:
             return False
 
-        keyword = self._decide_sole_keyword(keywords_frequency=keywords_frequency)
+        keyword, num = self._decide_sole_keyword(keywords_frequency=keywords_frequency)
 
         return self._generate_keyword_update_item(keyword=keyword)
 
@@ -264,8 +270,8 @@ class TagRule:
         if not keywords_frequency:
             return False
 
-        keyword = self._decide_sole_keyword(keywords_frequency=keywords_frequency)
-        items = [self._generate_keyword_insert_item(keyword=keyword)]
+        keyword, num = self._decide_sole_keyword(keywords_frequency=keywords_frequency)
+        items = [self._generate_keyword_insert_item(keyword=keyword, num=num)]
 
         return items
 
@@ -343,8 +349,8 @@ class TagRule:
     def _generate_keyword_num_insert_item(self, keyword, num):
         return (keyword, num) + self._get_keyword_all_tags(keyword=keyword)
 
-    def _generate_keyword_insert_item(self, keyword):
-        return (keyword,) + self._get_keyword_all_tags(keyword=keyword)
+    def _generate_keyword_insert_item(self, keyword, num):
+        return (keyword, num) + self._get_keyword_all_tags(keyword=keyword)
 
     def _generate_keyword_update_item(self, keyword):
         update_item = dict()
@@ -394,7 +400,7 @@ class TagRule:
         keyword_list = sorted(keywords_frequency.items(), key=lambda d: d[1], reverse=True)
         keyword = keyword_list[0][0]
 
-        return keyword
+        return keyword, keywords_frequency[keyword]
 
     def _store_chinese_bad_keyword(self, keyword):
         good_keyword = self._change_bad_keyword(keyword=keyword)

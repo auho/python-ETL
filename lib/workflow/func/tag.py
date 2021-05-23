@@ -49,12 +49,13 @@ class FuncTagUpdate(FuncUpdate):
 
 
 class FuncTagInsertTogether(FuncInsert):
-    def __init__(self, key, rules):
+    def __init__(self, key, rules, insert_keys):
         self._key = key
         self._rules = rules
+        self._insertKeys = insert_keys
 
     def get_keys(self):
-        return self._rules[0].get_keys()
+        return self._insertKeys
 
     def get_fields(self):
         return [self._key]

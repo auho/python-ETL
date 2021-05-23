@@ -1,4 +1,4 @@
-import pandas, time, pathlib, os
+import pandas, time, pathlib, os, math
 from lib.common.conf import MysqlConf
 from lib.db.mysql import Mysql
 
@@ -18,6 +18,7 @@ class BaseQuery:
 
         self._sheet_amount = 0
         self._sheets_name = []
+        self._start_time = time.time()
 
     def get_sheet_amount(self):
         return self._sheet_amount
@@ -47,8 +48,12 @@ class BaseQuery:
         BaseQuery.SHEETS_INFO[self._excel_name] = self._sheets_name
         self._excel = None
 
+        duration = time.time() - self._start_time
+
         print('save excel duration:: ' + str(end_time - start_time))
-        print(f"excel saved. All sheet amount:: {self._sheet_amount}\n\n")
+        print(f"excel saved. All sheet amount:: {self._sheet_amount}")
+        print(f"Total time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
+        print("\n\n")
 
     def _create_excel(self, excel_name):
         excel_name = excel_name.replace(' ', '_').replace('/', '_')
@@ -156,6 +161,20 @@ class CommonQuery(BaseQuery):
 
     def init(self, excel_name):
         self._create_excel(excel_name)
+
+    def execute(self, sqls):
+        sql_list = []
+        if type(sqls) == str:
+            sql_list.append(sqls)
+        elif type(sqls) == list or type(sqls) == tuple:
+            sql_list = sqls
+        else:
+            raise Exception('sql list is error!')
+
+        for sql in sql_list:
+            print(f"SQL:: {sql}")
+            rows = self._execute_sql(sql=sql, db=self.mysqlDb)
+            print(f"SQL AFFECTED ROWS:: {rows}\n")
 
     def truncate(self, table_name, database_name=None):
         return self._truncate(table_name=table_name, db=self.mysqlDb, database_name=database_name)

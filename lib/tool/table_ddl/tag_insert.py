@@ -31,6 +31,6 @@ class Table(rule.Table):
     def _init(self):
         self.DDLTagTable = mysql.DDLCreate(table_name=self._insertTableName)
 
-        self.DDLTagTable.add_id(name=self._keyid)
+        self.DDLTagTable.add_id(name=self._keyid, is_index=True)
         self._add_fields(ddl_rule=self.DDLTagTable)
         self.DDLTagTable.add_int(name=f"{self._tagName}_{self.KeyWord}_num")

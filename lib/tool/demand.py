@@ -4,6 +4,7 @@ import importlib
 import threading
 import queue
 import time
+import math
 from lib.common.app import App
 
 
@@ -38,9 +39,11 @@ class Demand:
 
 
 class DemandApp:
+    START_TIME = time.time()
+
     def __init__(self, app: App):
         self._APP = app
-        self._run_items = []
+        self._run_items = dict()
 
     def run_sibling_path_files(self, files_names, sibling_path):
         stack = inspect.stack()
@@ -50,6 +53,8 @@ class DemandApp:
         path = path.replace(self._APP.modulePath + '/', '')
         self.run_path_files(files_names=files_names, path=path + '/' + sibling_path)
 
+        return self
+
     def run_sibling_path(self, sibling_path):
         stack = inspect.stack()
         file_path = stack[1].filename
@@ -57,6 +62,8 @@ class DemandApp:
         path = os.path.dirname(file_path)
         path = path.replace(self._APP.modulePath + '/', '')
         self.run_path(path=path + '/' + sibling_path)
+
+        return self
 
     def run_path(self, path=None):
         all_files_import = self.get_files_import_of_path(path=path)
@@ -77,9 +84,12 @@ class DemandApp:
         self.run_file_import(file_import=file_import)
 
     def run_file_import(self, file_import):
-        self._run_items.append(file_import)
+        print(f"EXEC:: {file_import}")
 
+        start_time = time.time()
         importlib.import_module(file_import)
+        duration = time.time() - start_time
+        self._add_run_item(file_import, duration)
 
     def get_files_import_of_files(self, files_names, path=None):
         all_files_import = []
@@ -123,8 +133,17 @@ class DemandApp:
         return all_files_import
 
     def state(self):
-        for item in self._run_items:
-            print(item)
+        print("\nSTATE::")
+        for item, item_info in self._run_items.items():
+            print(f"{item}:: {self._format_duration(item_info['duration'])}")
+
+        duration = time.time() - self.START_TIME
+        print(f"Total time: {self._format_duration(duration)}")
+
+    def _add_run_item(self, item, duration):
+        self._run_items[item] = {
+            'duration': duration
+        }
 
     def _generate_app_path_import(self, path):
         if path:
@@ -138,6 +157,10 @@ class DemandApp:
             return path.strip('/').replace('/', '.')
         else:
             return ''
+
+    @staticmethod
+    def _format_duration(duration):
+        return f"{math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒"
 
 
 class DemandThread(threading.Thread):

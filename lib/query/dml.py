@@ -170,7 +170,8 @@ class TableJoin(Model):
         :param table:
         :param join_on:
             全条件：`t`.`id` = `t1`.`id`
-            条件字段：['left id', 'current id']
+            条件字段：['id'] 上一个表
+            条件字段：['left id', 'current id'] 第一个表
             条件字段 1：['left table', 'left id', 'current id']
             条件字段 2：['left table', 'left id', 'right table', 'current id']
         """
@@ -181,6 +182,8 @@ class TableJoin(Model):
 
         if type(join_on) == str:
             left_join_on_string = join_on
+        if type(join_on) == list and len(join_on) == 1:
+            left_join_on_string = f'`{self._tables[-2].get_table_name()}`.`{join_on[0]}` = `{table.get_table_name()}`.`{join_on[0]}`'
         elif type(join_on) == list and len(join_on) == 2:
             left_join_on_string = f'`{self._tables[0].get_table_name()}`.`{join_on[0]}` = `{table.get_table_name()}`.`{join_on[1]}`'
         elif type(join_on) == list and len(join_on) == 3:
