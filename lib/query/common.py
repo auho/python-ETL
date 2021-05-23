@@ -6,6 +6,7 @@ from lib.db.mysql import Mysql
 class BaseQuery:
     SHEET_AMOUNT = 0
     SHEETS_INFO = dict()
+    START_TIME = time.time()
 
     def __init__(self):
         self._excelName = ''
@@ -25,7 +26,7 @@ class BaseQuery:
         self._sheetsName = []
         # 运行过的 sheet，包含 excel 和 csv
         self._sheets = []
-        self._startTime = time.time()
+        self._startTime = 0
 
     def to_excel(self, name, df):
         if self.DEBUG:
@@ -76,16 +77,29 @@ class BaseQuery:
             print(sheet)
 
         print(f"Total time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
+        print("\n")
+
+        duration = time.time() - BaseQuery.START_TIME
+        print(f'QUERY::')
+        print(f'sheets amount:: {BaseQuery.SHEET_AMOUNT}')
+        for excel_name, sheet_info in BaseQuery.SHEETS_INFO.items():
+            print(excel_name)
+            for sheet in sheet_info:
+                print(f"  - {sheet}")
+
+        print(f"Total time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
         print("\n\n")
 
     def _create_excel(self, excel_name):
+        self._startTime = time.time()
+
         excel_name = excel_name.replace(' ', '_').replace('/', '_')
         self._excelName = excel_name
         self._excelFullName = excel_name + '.xlsx'
         self._show_excel_info()
 
-        # if self.DEBUG:
-        #     return
+        if self.DEBUG:
+            return
 
         self._excelPath = f'{self._basePath}/xlsx'
         if self._savePath:
