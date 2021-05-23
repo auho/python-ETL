@@ -36,7 +36,7 @@ class BaseQuery:
 
         start_time = time.time()
 
-        if df.index.size >= 2 ^ 20:
+        if df.index.size >= 2 ** 20:
             csv_file = self._excelAbsoluteFile.replace('.xlsx', f'-{name}.csv')
             self._sheets.append(f'{csv_file}:: {df.index.size}')
 
