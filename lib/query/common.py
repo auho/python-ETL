@@ -8,7 +8,8 @@ class BaseQuery:
     SHEETS_INFO = dict()
 
     def __init__(self):
-        self._excel_name = ''
+        self._excelName = ''
+        self._excelFullName = ''
         self._excel = None  # type: pandas.ExcelWriter
         self._basePath = ''
         self._savePath = ''
@@ -16,22 +17,34 @@ class BaseQuery:
         self.DEBUG = False
         self.ENV_DEBUG = 'dev'
 
-        self._sheet_amount = 0
-        self._sheets_name = []
-        self._start_time = time.time()
-
-    def get_sheet_amount(self):
-        return self._sheet_amount
+        self._excelPath = ''
+        self._excelAbsolutePath = ''
+        self._excelAbsoluteFile = ''
+        self._sheetAmount = 0
+        # excel 的 sheet name 列表
+        self._sheetsName = []
+        # 运行过的 sheet，包含 excel 和 csv
+        self._sheets = []
+        self._startTime = time.time()
 
     def to_excel(self, name, df):
         if self.DEBUG:
             return
 
-        self._sheet_amount += 1
-        self._sheets_name.append(name)
+        self._sheetAmount += 1
+
         start_time = time.time()
 
-        df.to_excel(self._excel, sheet_name=name, index=False)
+        if df.index.size >= 2 ^ 20:
+            csv_file = self._excelAbsoluteFile.replace('.xlsx', f'-{name}.csv')
+            self._sheets.append(f'{csv_file}:: {df.index.size}')
+
+            df.to_csv(csv_file, index=False)
+        else:
+            self._sheetsName.append(name)
+            self._sheets.append(f'{name}:: {df.index.size}')
+
+            df.to_excel(self._excel, sheet_name=name, index=False)
 
         end_time = time.time()
         print('add sheet to excel:: ' + str(end_time - start_time))
@@ -41,55 +54,69 @@ class BaseQuery:
             return
 
         start_time = time.time()
-        self._excel.save()
-        end_time = time.time()
 
-        BaseQuery.SHEET_AMOUNT += self._sheet_amount
-        BaseQuery.SHEETS_INFO[self._excel_name] = self._sheets_name
+        if self._sheetsName:
+            self._excel.save()
+        else:
+            os.remove(self._excelAbsoluteFile)
+
         self._excel = None
 
-        duration = time.time() - self._start_time
+        end_time = time.time()
+
+        BaseQuery.SHEET_AMOUNT += self._sheetAmount
+        BaseQuery.SHEETS_INFO[self._excelName] = self._sheets
+
+        duration = time.time() - self._startTime
 
         print('save excel duration:: ' + str(end_time - start_time))
-        print(f"excel saved. All sheet amount:: {self._sheet_amount}")
+        print(f"excel saved. All sheet amount:: {self._sheetAmount}")
+        print(f'{self._excelAbsoluteFile}')
+        for sheet in self._sheets:
+            print(sheet)
+
         print(f"Total time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
         print("\n\n")
 
     def _create_excel(self, excel_name):
         excel_name = excel_name.replace(' ', '_').replace('/', '_')
-        self._excel_name = excel_name
+        self._excelName = excel_name
+        self._excelFullName = excel_name + '.xlsx'
         self._show_excel_info()
 
-        if self.DEBUG:
-            return
+        # if self.DEBUG:
+        #     return
 
-        save_path = f'{self._basePath}/xlsx'
+        self._excelPath = f'{self._basePath}/xlsx'
         if self._savePath:
-            save_path = f'xlsx/{self._savePath}'
+            self._excelPath = f'xlsx/{self._savePath}'
 
-        path = pathlib.Path(save_path)
+        path = pathlib.Path(self._excelPath)
         if not path.exists():
-            os.makedirs(save_path, 0o755)
+            os.makedirs(self._excelPath, 0o755)
 
         if not path.exists():
-            print(f'path {save_path} is error')
+            print(f'path {self._excelPath} is error')
             exit(1)
 
-        self._excel = pandas.ExcelWriter(f'{save_path}/{excel_name}.xlsx', options={'strings_to_urls': False}, engine='xlsxwriter')
+        self._excelAbsolutePath = path.absolute().as_posix()
+        self._excelAbsoluteFile = self._excelAbsolutePath + '/' + self._excelFullName
+
+        self._excel = pandas.ExcelWriter(f'{self._excelPath}/{self._excelFullName}', options={'strings_to_urls': False}, engine='xlsxwriter')
 
     def _show_excel_info(self):
-        print(self._excel_name)
+        print(self._excelName)
 
     def _show_query_info(self, sheet_name, sql, db_conf):
         print("=================================" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-        print(f"excel:: {self._excel_name}")
+        print(f"excel:: {self._excelName}")
         print(f"sheet:: {sheet_name}")
         print("db:: " + db_conf.db)
         print(f"{sql};\n")
 
     def _show_execute_info(self, sql, db_conf):
         print("=================================" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
-        print(f"excel:: {self._excel_name}")
+        print(f"excel:: {self._excelName}")
         print("db:: " + db_conf.db)
         print(f"{sql};\n")
 

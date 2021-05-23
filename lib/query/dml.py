@@ -19,8 +19,8 @@ class Table(Model):
     保存格式化 table 信息，方便组成 sql
     """
 
-    def __init__(self, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias=None, order_dict=None, limit='',
-                 select_alias=None, table_sql=None):
+    def __init__(self, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias=None, group_alias_map=None,
+                 order_dict=None, limit='', select_alias=None, table_sql=None):
         """
 
         :param table_name: left join table name
@@ -29,6 +29,7 @@ class Table(Model):
         :param group_fields: [key name]
         :param aggregation_dict: {'COUNT(*)': '评论量'}
         :param group_alias: 分组字典 key name:key title
+        :param group_alias_map: 分组字典 key name:key title，只作为 alias 替换，不加入 select
         :param order_dict: 排序字典 key name:key sort
         :param limit: str
         :param table_sql: 直接使用 sql 结果作为表，表名为 table_name
@@ -43,7 +44,8 @@ class Table(Model):
         self._where = where  # type:str
         self._group_fields = group_fields  # type:list
         self._aggregation_dict = aggregation_dict  # type:dict
-        self._group_alias_dict = group_alias  # type:dict
+        self._group_alias_dict = group_alias
+        self._group_alias_map_dict = group_alias_map  # type:dict
         self._order_dict = order_dict  # type:dict
         self.limit = limit
         self._select_alias = select_alias
@@ -68,8 +70,8 @@ class Table(Model):
         if not self._group_fields:
             self.group_list = []
 
-        if not self._group_alias_dict:
-            self._group_alias_dict = dict()
+        if not self._group_alias_map_dict:
+            self._group_alias_map_dict = dict()
 
     def _parse_select(self, select):
         if select:
@@ -103,15 +105,21 @@ class Table(Model):
             for k in group:
                 key = f"`{self._table_name}`.`{k}`"
 
-                if k in self._group_alias_dict:
-                    if k == self._group_alias_dict[k]:
+                if k in self._group_alias_map_dict:
+                    if k == self._group_alias_map_dict[k]:
                         self.select_list.append(key)
                     else:
-                        self.select_list.append(f"{key} AS '{self._group_alias_dict[k]}'")
+                        self.select_list.append(f"{key} AS '{self._group_alias_map_dict[k]}'")
                 else:
                     self.select_list.append(key)
 
                 self.group_list.append(key)
+
+    def _parse_group_alias(self, group_alias):
+        for k, v in group_alias.items():
+            self.select_list.append(f"{k} AS '{v}'")
+
+            self.group_list.append(k)
 
     def _parse_order(self, order):
         if order:
@@ -123,6 +131,7 @@ class Table(Model):
         self._parse_select(select=self._select_alias)
         self._parse_where(where=self._where)
         self._parse_group(group=self._group_fields)
+        self._parse_group_alias(group_alias=self._group_alias_dict)
         self._parse_select(select=self._aggregation_dict)
         self._parse_order(order=self._order_dict)
 
