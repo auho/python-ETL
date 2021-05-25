@@ -2,6 +2,8 @@ import pandas, time, pathlib, os, math
 from lib.common.conf import MysqlConf
 from lib.db.mysql import Mysql
 
+EXCEL_MAX_LINE = 2 ** 20
+
 
 class BaseQuery:
     SHEET_AMOUNT = 0
@@ -28,6 +30,9 @@ class BaseQuery:
         self._sheets = []
         self._startTime = 0
 
+    def debug_off(self):
+        self.DEBUG = False
+
     def to_excel(self, name, df):
         if self.DEBUG:
             return
@@ -37,30 +42,31 @@ class BaseQuery:
         print('start add sheet to excel::')
         start_time = time.time()
 
-        max_line = 2 ** 20
-        if df.index.size >= max_line:
+        self._sheetsName.append(name)
+        self._sheets.append(f'{name}:: ~{df.index.size}')
+
+        if df.index.size >= EXCEL_MAX_LINE:
             start = 0
-            end = 2 ** 20
+            end = EXCEL_MAX_LINE
             i = 1
             while start < df.index.size:
-                df.iloc[start:end].to_excel(self._excel, sheet_name=name + '-' + str(i).zfill(2), index=False)
+                sheet_name = name + '-' + str(i).zfill(2)
 
+                self._sheetsName.append(f" sheet_name")
+                self._sheets.append(f' {sheet_name}:: ~{end - start}')
+
+                df.iloc[start:end].to_excel(self._excel, sheet_name=sheet_name, index=False)
                 i += 1
-                if start + max_line >= df.index.size:
+
+                if end >= df.index.size:
                     break
-
                 else:
-                    start += max_line
-
-                    if end + max_line >= df.index.size:
+                    start = end
+                    end += EXCEL_MAX_LINE
+                    if end >= df.index.size:
                         end = df.index.size
-                    else:
-                        end += max_line
 
         else:
-            self._sheetsName.append(name)
-            self._sheets.append(f'{name}:: {df.index.size}')
-
             df.to_excel(self._excel, sheet_name=name, index=False)
 
         end_time = time.time()
@@ -71,8 +77,7 @@ class BaseQuery:
             return
 
         start_time = time.time()
-
-        if self._sheetsName:
+        if len(self._excel.sheets) > 0:
             self._excel.save()
         else:
             os.remove(self._excelAbsoluteFile)
@@ -82,7 +87,7 @@ class BaseQuery:
         end_time = time.time()
 
         BaseQuery.SHEET_AMOUNT += self._sheetAmount
-        BaseQuery.SHEETS_INFO[self._excelName] = self._sheets
+        BaseQuery.SHEETS_INFO[self._excelFullName] = self._sheets
 
         duration = time.time() - self._startTime
 
@@ -90,20 +95,26 @@ class BaseQuery:
         print(f"excel saved. All sheet amount:: {self._sheetAmount}")
         print(f'{self._excelAbsoluteFile}')
         for sheet in self._sheets:
-            print(sheet)
+            if sheet[0] == ' ':
+                print(' ' + sheet)
+            else:
+                print(sheet)
 
         print(f"Total time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
         print("\n")
 
         duration = time.time() - BaseQuery.START_TIME
         print(f'QUERY::')
-        print(f'sheets amount:: {BaseQuery.SHEET_AMOUNT}')
+        print(f'Query Sheets Amount:: {BaseQuery.SHEET_AMOUNT}')
         for excel_name, sheet_info in BaseQuery.SHEETS_INFO.items():
-            print(excel_name)
+            print(excel_name, round(os.path.getsize(self._excelAbsoluteFile) / 1000 / 1000, 3), 'MB')
             for sheet in sheet_info:
-                print(f"  - {sheet}")
+                if sheet[0] == ' ':
+                    print(f"    - {sheet}")
+                else:
+                    print(f"  - {sheet}")
 
-        print(f"Total time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
+        print(f"Query Total Time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
         print("\n\n")
 
     def _to_csv(self, name, df):
