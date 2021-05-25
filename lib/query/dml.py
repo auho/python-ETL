@@ -73,6 +73,11 @@ class Table(Model):
         if not self._group_alias_map_dict:
             self._group_alias_map_dict = dict()
 
+    def select(self, select):
+        self._parse_select(select=select)
+
+        return self
+
     def _parse_select(self, select):
         if select:
             if type(select) == str:

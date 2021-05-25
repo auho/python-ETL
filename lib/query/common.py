@@ -34,13 +34,29 @@ class BaseQuery:
 
         self._sheetAmount += 1
 
+        print('start add sheet to excel::')
         start_time = time.time()
 
-        if df.index.size >= 2 ** 20:
-            csv_file = self._excelAbsoluteFile.replace('.xlsx', f'-{name}.csv')
-            self._sheets.append(f'{csv_file}:: {df.index.size}')
+        max_line = 2 ** 20
+        if df.index.size >= max_line:
+            start = 0
+            end = 2 ** 20
+            i = 1
+            while start < df.index.size:
+                df.iloc[start:end].to_excel(self._excel, sheet_name=name + '-' + str(i).zfill(2), index=False)
 
-            df.to_csv(csv_file, index=False)
+                i += 1
+                if start + max_line >= df.index.size:
+                    break
+
+                else:
+                    start += max_line
+
+                    if end + max_line >= df.index.size:
+                        end = df.index.size
+                    else:
+                        end += max_line
+
         else:
             self._sheetsName.append(name)
             self._sheets.append(f'{name}:: {df.index.size}')
@@ -89,6 +105,12 @@ class BaseQuery:
 
         print(f"Total time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
         print("\n\n")
+
+    def _to_csv(self, name, df):
+        csv_file = self._excelAbsoluteFile.replace('.xlsx', f'-{name}.csv')
+        self._sheets.append(f'{csv_file}:: {df.index.size}')
+
+        df.to_csv(csv_file, index=False)
 
     def _create_excel(self, excel_name):
         self._startTime = time.time()
@@ -140,7 +162,7 @@ class BaseQuery:
         if not is_force and self.DEBUG:
             return False
 
-        duration_info = '    duration ' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + '[ '
+        duration_info = '    duration ' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' [ '
 
         start_time = time.time()
 

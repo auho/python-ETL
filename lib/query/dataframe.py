@@ -44,25 +44,77 @@ class TableTopGather(Model):
 
     """
 
+    def top_gather_where(self, query: CommonQuery, sheet_name, sql, gather_where_items):
+        """
+        所有的条件组合，上下合并到一起
+
+        :param query:
+        :param sheet_name:
+        :param sql:
+        :param gather_where_items:
+        :return:
+        """
+        return self._top_gather_to_excel(query=query, sheet_name=sheet_name, sql=sql, gather_where_items=gather_where_items)
+
     def top_gather(self, query: CommonQuery, sheet_name, sql, gather_items):
+        """
+        所有的条件组合，上下合并到一起
+
+        :param query:
+        :param sheet_name:
+        :param sql:
+        :param gather_items:
+        :return:
+        """
         gather_where_items = self._generate_gather_items_for_items(gather_items=gather_items)
 
         return self._top_gather_to_excel(query=query, sheet_name=sheet_name, sql=sql, gather_where_items=gather_where_items)
 
-    def top_gather_segmentation_merge_for_one(self, query: CommonQuery, sheet_name, sql, segmentation_key, segmentation_values, merge_index,
-                                              gather_items=None):
+    def top_gather_segmentation_merge(self, query: CommonQuery, sheet_name, sql, gather_items, merge_index):
+        """
+        所有的条件组合，左右合并到一起
+
+        :param query:
+        :param sheet_name:
+        :param sql:
+        :param merge_index:
+        :param gather_items:
+        :return:
+        """
         all_df = None
-        for value, gather_where_items in self._generate_segmentation_gather_item(segmentation_key, segmentation_values, gather_items):
+        for gather_where_items in self._generate_gather_items_for_items(gather_items):
             df = self._get_data_with_df(query=query, sql=sql, gather_where_items=gather_where_items)
-            all_df = self._merge(all_df=all_df, df=df, merge_index=merge_index)
+            if all_df is None:
+                all_df = df
+            else:
+                all_df = self._merge(all_df=all_df, df=df, merge_index=merge_index)
 
         query.to_excel(name=sheet_name, df=all_df)
 
     def top_gather_segmentation(self, query: CommonQuery, sql, segmentation_key, segmentation_values, gather_items=None):
+        """
+        每个 seg value 下的所有条件组合 一个 sheet
+
+        :param query:
+        :param sql:
+        :param segmentation_key:
+        :param segmentation_values:
+        :param gather_items:
+        :return:
+        """
         for value, gather_all_where_items in self._generate_segmentation_gather_item(segmentation_key, segmentation_values, gather_items):
             self._top_gather_to_excel(query=query, sheet_name=value, sql=sql, gather_where_items=gather_all_where_items)
 
     def _generate_segmentation_gather_item(self, segmentation_key, segmentation_values, gather_items):
+        """
+        求出其他条件的组合
+        每次返回一个 seg value 下所有的组合
+
+        :param segmentation_key:
+        :param segmentation_values:
+        :param gather_items:
+        :return:
+        """
         for value in segmentation_values:
             gather_whole_where_items = []
             if gather_items:
@@ -76,12 +128,33 @@ class TableTopGather(Model):
             yield value, gather_whole_where_items
 
     def _top_gather_to_excel(self, query: CommonQuery, sheet_name, sql, gather_where_items):
+        """
+
+        :param query:
+        :param sheet_name:
+        :param sql:
+        :param gather_where_items:
+        :return:
+        """
         df = self._get_data_with_df(query=query, sql=sql, gather_where_items=gather_where_items)
 
         query.to_excel(name=sheet_name, df=df)
 
     @staticmethod
     def _get_data_with_df(query: CommonQuery, sql, gather_where_items):
+        """
+        [
+            { a: 1, b: 3 },
+            { a: 1, b: 4 },
+            { a: 2, b: 3 },
+            { a: 2, b: 4 },
+        ]
+
+        :param query:
+        :param sql:
+        :param gather_where_items:
+        :return:
+        """
         all_df = None
         for item in gather_where_items:
             exec_sql = sql
@@ -105,6 +178,21 @@ class TableTopGather(Model):
 
     @staticmethod
     def _generate_gather_items_for_items(gather_items):
+        """
+        {
+            a: [ 1 ,2 ],
+            b: [ 3, 4 ]
+        }
+
+        [
+            { a: 1, b: 3 },
+            { a: 1, b: 4 },
+            { a: 2, b: 3 },
+            { a: 2, b: 4 },
+        ]
+        :param gather_items:
+        :return:
+        """
         all_items = []
         items = []
         for key, values in gather_items.items():
