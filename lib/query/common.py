@@ -184,7 +184,7 @@ class BaseQuery:
         if not is_force and self.DEBUG:
             return False
 
-        duration_info = '    duration ' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' [ '
+        duration_info = '   ' + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + ' [ '
 
         start_time = time.time()
 
@@ -195,8 +195,8 @@ class BaseQuery:
 
         res = db.cursor.fetchall()  # 获取数据
 
-        end_time = time.time()
-        duration_info += 'fetch data: ' + str(end_time - end_time) + ', '
+        end1_time = time.time()
+        duration_info += 'fetch data: ' + str(end1_time - end_time) + ', '
 
         col_result = db.cursor.description  # 获取查询结果的字段描述
 
@@ -206,8 +206,8 @@ class BaseQuery:
 
         df = pandas.DataFrame(list(res), columns=all_field)
 
-        end_time = time.time()
-        duration_info += 'create df: ' + str(end_time - end_time) + " ]\n"
+        end2_time = time.time()
+        duration_info += 'create df: ' + str(end2_time - end1_time) + " ]\n"
 
         print(f" total: {len(res)}" + duration_info)
 
