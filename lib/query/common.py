@@ -91,7 +91,7 @@ class BaseQuery:
 
         end_time = time.time()
         print('save excel duration:: ' + str(end_time - start_time))
-        print(f"Total time: {self._format_duration(end_time - start_time)} ")
+        print(f"Total time: {self._format_duration(end_time - self._startTime)} ")
         print("\n")
 
         file_size = round(os.path.getsize(self._excelAbsoluteFile) / 1000 / 1000, 3)
