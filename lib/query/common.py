@@ -9,6 +9,7 @@ class BaseQuery:
     QUERY_AMOUNT = 0
     SHEET_AMOUNT = 0
     SHEETS_INFO = dict()
+    EXCEL_INFO = dict()
     START_TIME = time.time()
 
     def __init__(self):
@@ -89,34 +90,34 @@ class BaseQuery:
         self._excel = None
 
         end_time = time.time()
+        print('save excel duration:: ' + str(end_time - start_time))
+        print(f"Total time: {self._format_duration(end_time - start_time)} ")
+        print("\n")
 
+        file_size = round(os.path.getsize(self._excelAbsoluteFile) / 1000 / 1000, 3)
+        duration = self._format_duration(end_time - self._startTime)
+
+        BaseQuery.QUERY_AMOUNT += self._queryAmount
         BaseQuery.SHEET_AMOUNT += self._sheetAmount
         BaseQuery.SHEETS_INFO[self._excelFullName] = self._sheets
+        BaseQuery.EXCEL_INFO[self._excelFullName] = f'[Sheets: {self._sheetAmount}, Query:: {self._queryAmount}, Duration:: {duration} ' \
+                                                    f'Size:: {file_size} MB]'
 
-        duration = time.time() - self._startTime
-
-        print('save excel duration:: ' + str(end_time - start_time))
-        print(f"excel saved. All sheet amount:: {self._sheetAmount} q::{self._queryAmount}")
-        print(f'{self._excelAbsoluteFile}')
-        for sheet in self._sheets:
-            if sheet[0] == ' ':
-                print(' ' + sheet)
-            else:
-                print(sheet)
-
-        print(f"Total time: {self._format_duration(duration=duration)} ")
-        print("\n")
         self._sheets = []
         self._sheetAmount = 0
         self._sheetsName = []
         self._preQueryAmount = 0
         self._queryAmount = 0
 
-        duration = time.time() - BaseQuery.START_TIME
-        print(f'QUERY::')
-        print(f'Query Sheets Amount:: {BaseQuery.SHEET_AMOUNT}')
-        for excel_name, sheet_info in BaseQuery.SHEETS_INFO.items():
-            print(excel_name, round(os.path.getsize(self._excelAbsoluteFile) / 1000 / 1000, 3), 'MB')
+        duration = end_time - BaseQuery.START_TIME
+        print(f"QUERY:: {time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(BaseQuery.START_TIME))} - "
+              f"{time.strftime('%Y-%m-%d %H:%M:%S', time.gmtime(end_time))}")
+        print(f'Excels:: {len(BaseQuery.EXCEL_INFO)}, Sheets:: {BaseQuery.SHEET_AMOUNT}, Query:: {BaseQuery.QUERY_AMOUNT}')
+
+        for excel_name, excel_info in BaseQuery.EXCEL_INFO.items():
+            print(excel_name, excel_info)
+
+            sheet_info = BaseQuery.SHEETS_INFO[excel_name]
             for sheet in sheet_info:
                 if sheet[0] == ' ':
                     print(f"    - {sheet}")
@@ -164,14 +165,14 @@ class BaseQuery:
         print(self._excelName)
 
     def _show_query_info(self, sheet_name, sql, db_conf):
-        print("=================================" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        print("================================= " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         print(f"excel:: {self._excelName}")
         print(f"sheet:: {sheet_name}")
         print("db:: " + db_conf.db)
         print(f"{sql};\n")
 
     def _show_execute_info(self, sql, db_conf):
-        print("=================================" + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
+        print("================================= " + time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()))
         print(f"excel:: {self._excelName}")
         print("db:: " + db_conf.db)
         print(f"{sql};\n")
