@@ -251,6 +251,8 @@ class TableJoin(Model):
         if where:
             self._where_list.append(where)
 
+        return self
+
     def _where_string(self):
         if self._where_list:
             return ' WHERE ' + ' AND '.join(self._where_list)
@@ -261,6 +263,8 @@ class TableJoin(Model):
         if group:
             self._group_list.extend(group)
 
+        return self
+
     def _group_string(self):
         if self._group_list:
             return ' GROUP BY ' + ','.join(self._group_list)
@@ -270,6 +274,7 @@ class TableJoin(Model):
     def order(self, order):
         if order:
             self._order_list.extend(order)
+        return self
 
     def _order_string(self):
         if self._order_list:
@@ -280,6 +285,8 @@ class TableJoin(Model):
     def limit(self, limit):
         if limit:
             self._limit = limit
+
+        return self
 
     def _limit_string(self):
         if self._limit:

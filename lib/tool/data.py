@@ -17,5 +17,9 @@ class DataModel:
     def tag_words_table_name(self, content_name):
         return Fast.tag_words_table_name(data_name=self._name, content_name=content_name)
 
-    def rule_table_name(self, tag_name):
-        return Fast.rule_table_name(tag_name=tag_name, data_name=self._name)
+    def rule_table_name(self, tag_name, has_data_name=True):
+        data_name = None
+        if has_data_name:
+            data_name = self._name
+
+        return Fast.rule_table_name(tag_name=tag_name, data_name=data_name)

@@ -3,10 +3,10 @@ from lib.db.ddl import mysql
 
 
 class Table(TableDDl):
-    TableRule = 'rule_'
+    TableRule = 'rule'
     KeyWord = 'keyword'
 
-    def __init__(self, tag_name, tags=None, complete_tags=None, table_name_prefix=None):
+    def __init__(self, tag_name, tags=None, complete_tags=None, table_name_prefix=None, table_name_suffix=None):
         self._tableName = None
         self._tagName = tag_name
         self._tags = tags  # type:list
@@ -14,10 +14,7 @@ class Table(TableDDl):
 
         self.DDLRule = None  # type: mysql.DDLBuild
 
-        if table_name_prefix:
-            self._tableName = self.TableRule + table_name_prefix + '_' + tag_name
-        else:
-            self._tableName = self.TableRule + tag_name
+        self._tableName = self._generate_table_name(tag_name, table_name_prefix, table_name_suffix)
 
         self._generate_ddl_rule()
 
@@ -65,3 +62,18 @@ class Table(TableDDl):
         fields = self._generate_keys()
         for field_item in fields:
             ddl_rule.add_field(field_item[0], field_item[1])
+
+    def _generate_table_name(self, tag_name, prefix, suffix):
+        if prefix:
+            prefix = f'_{prefix}'
+        else:
+            prefix = ''
+
+        if suffix:
+            suffix = f'_{suffix}'
+        else:
+            suffix = ''
+
+        tag_name = f'_{tag_name}'
+
+        return self.TableRule + prefix + tag_name + suffix

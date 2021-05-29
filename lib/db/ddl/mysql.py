@@ -38,7 +38,10 @@ class DDLBuild(metaclass=ABCMeta):
         self._add_sql(sql=sql)
 
         if is_index:
-            self.add_index(name=name)
+            key_size = length
+            if length > 250:
+                key_size = 100
+            self.add_index(name=name, key_size=key_size)
 
     def add_int(self, name, length=11, default=0, is_index=False):
         sql = self._DDL.alter_int(table_name=self._tableName, name=name, length=length, default=default)
@@ -55,8 +58,8 @@ class DDLBuild(metaclass=ABCMeta):
         sql = self._DDL.alter_text(table_name=self._tableName, name=name)
         self._add_sql(sql=sql)
 
-    def add_index(self, name):
-        sql = self._DDL.alter_index(table_name=self._tableName, name=name)
+    def add_index(self, name, key_size=None):
+        sql = self._DDL.alter_index(table_name=self._tableName, name=name, key_size=key_size)
         self._add_sql(sql=sql)
 
     def add_unique_index(self, name):
@@ -128,8 +131,11 @@ class DDLGenerate:
         return f"ALTER TABLE `{table_name}` ADD `{name}` text"
 
     @staticmethod
-    def alter_index(table_name, name):
-        return f"ALTER TABLE `{table_name}` ADD INDEX (`{name}`)"
+    def alter_index(table_name, name, key_size=None):
+        if key_size is None:
+            return f"ALTER TABLE `{table_name}` ADD INDEX (`{name}`)"
+        else:
+            return f"ALTER TABLE `{table_name}` ADD INDEX (`{name}` ({key_size}))"
 
     @staticmethod
     def alter_unique_index(table_name, name):

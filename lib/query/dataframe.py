@@ -159,6 +159,9 @@ class TableTopGather(Model):
         for item in gather_where_items:
             exec_sql = sql
             for key, value in item.items():
+                if type(value) != str:
+                    value = str(value)
+
                 exec_sql = exec_sql.replace(f"##{key}##", value)
 
             df = query.get(name='', sql=exec_sql, is_to_excel=False)
@@ -201,8 +204,9 @@ class TableTopGather(Model):
             if items:
                 for item in items:
                     for value in values:
-                        item[key] = value
-                        all_items.append(item)
+                        t_item = item.copy()
+                        t_item[key] = value
+                        all_items.append(t_item)
             else:
                 for value in values:
                     all_items.append({key: value})

@@ -6,6 +6,7 @@ EXCEL_MAX_LINE = 2 ** 20
 
 
 class BaseQuery:
+    QUERY_AMOUNT = 0
     SHEET_AMOUNT = 0
     SHEETS_INFO = dict()
     START_TIME = time.time()
@@ -26,9 +27,11 @@ class BaseQuery:
         self._sheetAmount = 0
         # excel 的 sheet name 列表
         self._sheetsName = []
-        # 运行过的 sheet，包含 excel 和 csv
+        # excel 的 sheet 查询， 调用 get 方法,
         self._sheets = []
         self._startTime = 0
+        self._queryAmount = 0
+        self._preQueryAmount = 0
 
     def debug_off(self):
         self.DEBUG = False
@@ -43,7 +46,8 @@ class BaseQuery:
         start_time = time.time()
 
         self._sheetsName.append(name)
-        self._sheets.append(f'{name}:: ~{df.index.size}')
+        self._sheets.append(f'{name}:: ~{df.index.size} q:: {self._queryAmount - self._preQueryAmount}')
+        self._preQueryAmount = self._queryAmount
 
         if df.index.size >= EXCEL_MAX_LINE:
             start = 0
@@ -92,7 +96,7 @@ class BaseQuery:
         duration = time.time() - self._startTime
 
         print('save excel duration:: ' + str(end_time - start_time))
-        print(f"excel saved. All sheet amount:: {self._sheetAmount}")
+        print(f"excel saved. All sheet amount:: {self._sheetAmount} q::{self._queryAmount}")
         print(f'{self._excelAbsoluteFile}')
         for sheet in self._sheets:
             if sheet[0] == ' ':
@@ -100,8 +104,13 @@ class BaseQuery:
             else:
                 print(sheet)
 
-        print(f"Total time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
+        print(f"Total time: {self._format_duration(duration=duration)} ")
         print("\n")
+        self._sheets = []
+        self._sheetAmount = 0
+        self._sheetsName = []
+        self._preQueryAmount = 0
+        self._queryAmount = 0
 
         duration = time.time() - BaseQuery.START_TIME
         print(f'QUERY::')
@@ -114,7 +123,7 @@ class BaseQuery:
                 else:
                     print(f"  - {sheet}")
 
-        print(f"Query Total Time: {math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒 ")
+        print(f"Query Total Time: {self._format_duration(duration=duration)} ")
         print("\n\n")
 
     def _to_csv(self, name, df):
@@ -169,6 +178,7 @@ class BaseQuery:
 
     def _get_df_from_sql(self, name, sql, db, db_conf, is_force=False):
         self._show_query_info(sheet_name=name, sql=sql, db_conf=db_conf)
+        self._queryAmount += 1
 
         if not is_force and self.DEBUG:
             return False
@@ -222,6 +232,10 @@ class BaseQuery:
     def _truncate(table_name, db, database_name=None):
         return db.truncate(table_name, database_name=database_name)
 
+    @staticmethod
+    def _format_duration(duration):
+        return f"{math.floor(duration / 60)} 分 {math.ceil(duration % 60)} 秒"
+
 
 class CommonQuery(BaseQuery):
     def __init__(self, app):
@@ -247,14 +261,16 @@ class CommonQuery(BaseQuery):
 
         for sql in sql_list:
             print(f"SQL:: {sql}")
+
+            start_time = time.time()
             rows = self._execute_sql(sql=sql, db=self.mysqlDb)
-            print(f"SQL AFFECTED ROWS:: {rows}\n")
+            end_time = time.time()
+            duration = end_time - start_time
+
+            print(f"SQL AFFECTED ROWS:: {rows} DURATION:: {self._format_duration(duration=duration)}\n")
 
     def truncate(self, table_name, database_name=None):
         return self._truncate(table_name=table_name, db=self.mysqlDb, database_name=database_name)
-
-    def insert_by_sql(self, sql):
-        return self._execute_sql(sql=sql, db=self.mysqlDb)
 
     def insert_many(self, table_name, fields, data, database_name=None):
         return self._execute_insert_many(table_name=table_name, fields=fields, data=data, db=self.mysqlDb, database_name=database_name)
