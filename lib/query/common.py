@@ -47,7 +47,7 @@ class BaseQuery:
         start_time = time.time()
 
         self._sheetsName.append(name)
-        self._sheets.append(f'{name}:: ~{df.index.size} q:: {self._queryAmount - self._preQueryAmount}')
+        self._sheets.append(f'{name}:: ~{df.index.size} query:: {self._queryAmount - self._preQueryAmount}')
         self._preQueryAmount = self._queryAmount
 
         if df.index.size >= EXCEL_MAX_LINE:
