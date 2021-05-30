@@ -5,6 +5,7 @@ import threading
 import queue
 import time
 import math
+import natsort
 from lib.common.app import App
 
 
@@ -122,13 +123,17 @@ class DemandApp:
                 if root[-1] != '/':
                     root = root + '/'
 
+            dir_files_import = []
             for file in files:
                 if file[-3:] != '.py':
                     continue
 
                 file = root + file[:-3]
                 file_import = path_import + '.' + self._convert_path_to_import(path=file)
-                all_files_import.append(file_import)
+                dir_files_import.append(file_import)
+
+            dir_files_import = natsort.natsorted(dir_files_import)
+            all_files_import.extend(dir_files_import)
 
         return all_files_import
 
