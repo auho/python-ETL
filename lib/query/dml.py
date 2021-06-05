@@ -189,8 +189,9 @@ class TableJoin(Model):
             全条件：`t`.`id` = `t1`.`id`
             条件字段：['id'] 上一个表
             条件字段：['left id', 'current id'] 第一个表
-            条件字段 1：['left table', 'left id', 'current id']
-            条件字段 2：['left table', 'left id', 'right table', 'current id']
+            条件字段：['left table', 'left id', 'current id']
+            条件字段：['left table', 'left id', 'right table', 'current id']
+
         """
 
         self._add_table(table=table)
@@ -200,7 +201,17 @@ class TableJoin(Model):
         if type(join_on) == str:
             left_join_on_string = join_on
         if type(join_on) == list and len(join_on) == 1:
-            left_join_on_string = f'`{self._tables[-2].get_table_name()}`.`{join_on[0]}` = `{table.get_table_name()}`.`{join_on[0]}`'
+            fields = join_on[0]
+            if type(fields) == str:
+                left_join_on_string = f'`{self._tables[-2].get_table_name()}`.`{fields}` = `{table.get_table_name()}`.`{fields}`'
+            elif type(fields) == list:
+                left_join_on_list = []
+                for field in fields:
+                    left_join_on_list.append(f'`{self._tables[-2].get_table_name()}`.`{field}` = `{table.get_table_name()}`.`{field}`')
+
+                left_join_on_string = ' AND '.join(left_join_on_list)
+            else:
+                raise Exception("join on is error!")
         elif type(join_on) == list and len(join_on) == 2:
             left_join_on_string = f'`{self._tables[0].get_table_name()}`.`{join_on[0]}` = `{table.get_table_name()}`.`{join_on[1]}`'
         elif type(join_on) == list and len(join_on) == 3:

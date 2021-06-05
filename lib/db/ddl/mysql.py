@@ -33,8 +33,8 @@ class DDLBuild(metaclass=ABCMeta):
         if is_index:
             self.add_index(name=name)
 
-    def add_string(self, name, length=30, default='', is_index=False):
-        sql = self._DDL.alter_string(table_name=self._tableName, name=name, length=length, default=default)
+    def add_string(self, name, length=30, default='', is_allow_null=False, is_index=False):
+        sql = self._DDL.alter_string(table_name=self._tableName, name=name, length=length, is_allow_null=is_allow_null, default=default)
         self._add_sql(sql=sql)
 
         if is_index:
@@ -119,8 +119,12 @@ class DDLGenerate:
         return f"ALTER TABLE `{table_name}` ADD `{name}` INT({length}) NOT NULL DEFAULT {default}"
 
     @staticmethod
-    def alter_string(table_name, name, length, default=''):
-        return f"ALTER TABLE `{table_name}` ADD `{name}` VARCHAR({length}) NOT NULL  DEFAULT '{default}'"
+    def alter_string(table_name, name, length, is_allow_null=False, default=''):
+        null_string = ''
+        if not is_allow_null:
+            null_string = 'NOT NULL '
+
+        return f"ALTER TABLE `{table_name}` ADD `{name}` VARCHAR({length}) {null_string}DEFAULT '{default}'"
 
     @staticmethod
     def alter_decimal(table_name, name, m, d, default=0):
