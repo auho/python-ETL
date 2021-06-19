@@ -20,7 +20,7 @@ class Table(Model):
     """
 
     def __init__(self, table_name, select=None, where=None, group_fields=None, aggregation_dict=None, group_alias=None, group_alias_map=None,
-                 order_dict=None, limit='', select_alias=None, table_sql=None):
+                 order_dict=None, limit='', select_alias=None, alias=None, table_sql=None):
         """
 
         :param table_name: left join table name
@@ -32,6 +32,8 @@ class Table(Model):
         :param group_alias_map: 分组字典 key name:key title，只作为 alias 替换，不加入 select
         :param order_dict: 排序字典 key name:key sort
         :param limit: str
+        :param select_alias: dict
+        :param alias: str
         :param table_sql: 直接使用 sql 结果作为表，表名为 table_name
 
         所有配置中的关键值名称需要带上 `
@@ -40,6 +42,7 @@ class Table(Model):
 
         """
         self._table_name = table_name
+        self._real_table_name = ''
         self._select = select
         self._where = where  # type:str
         self._group_fields = group_fields  # type:list
@@ -49,6 +52,7 @@ class Table(Model):
         self._order_dict = order_dict  # type:dict
         self.limit = limit
         self._select_alias = select_alias
+        self._table_alias = alias
         self.table_sql = table_sql
 
         self.select_list = []
@@ -64,6 +68,10 @@ class Table(Model):
         if not self._table_name:
             raise Exception('table name is Error!')
 
+        self._real_table_name = self._table_name
+        if self._table_alias:
+            self._table_name = self._table_alias
+
         if not self._select:
             self._select = []
 
@@ -77,6 +85,14 @@ class Table(Model):
         self._parse_select(select=select)
 
         return self
+
+    def _parse_select_alias(self, select):
+        if select is not None:
+            new_select = dict()
+            for k, v in select.items():
+                new_select[f"`{k}`"] = v
+
+            self._parse_select(select=new_select)
 
     def _parse_select(self, select):
         if select:
@@ -125,7 +141,7 @@ class Table(Model):
             for k, v in group_alias.items():
                 key = f"`{self._table_name}`.`{k}`"
 
-                self.select_list.append(f"{key} AS `{v}`")
+                self.select_list.append(f"{key} AS '{v}'")
 
                 self.group_list.append(key)
 
@@ -136,7 +152,7 @@ class Table(Model):
 
     def parse(self):
         self._parse_select(select=self._select)
-        self._parse_select(select=self._select_alias)
+        self._parse_select_alias(select=self._select_alias)
         self._parse_where(where=self._where)
         self._parse_group(group=self._group_fields)
         self._parse_group_alias(group_alias=self._group_alias_dict)
@@ -151,7 +167,10 @@ class Table(Model):
 
     def get_table_name_dml(self):
         if self.table_sql is None:
-            table_dml = f"`{self._table_name}`"
+            if self._real_table_name == self._table_name:
+                table_dml = f"`{self._table_name}`"
+            else:
+                table_dml = f"`{self._real_table_name}` AS `{self._table_name}`"
         else:
             table_dml = f"({self.table_sql}) AS `{self._table_name}`"
 
@@ -188,6 +207,7 @@ class TableJoin(Model):
         :param join_on:
             全条件：`t`.`id` = `t1`.`id`
             条件字段：['id'] 上一个表
+            条件字段：[['id', 'name']] 上一个表
             条件字段：['left id', 'current id'] 第一个表
             条件字段：['left table', 'left id', 'current id']
             条件字段：['left table', 'left id', 'right table', 'current id']
@@ -309,3 +329,40 @@ class TableJoin(Model):
         return f"SELECT {self._select_string()} {self._table_string()}" \
                f"{self._where_string()}" \
                f"{self._group_string()}{self._order_string()}{self._limit_string()}"
+
+
+class TableInsertInto(TableJoin):
+    def __init__(self, table_name):
+        self._tableName = table_name
+
+        super(TableInsertInto, self).__init__()
+
+    def sql(self):
+        fields = []
+        for s in self._select_list:
+            r = re.sub(r'.+\s+AS\s+\'([^\']+)\'', rf'\1', s)
+            if r != s:
+                fields.append(r)
+                continue
+
+            r = re.sub(r'`[^`]+`\.`([^`]+)`', rf'\1', s)
+            if r != s:
+                fields.append(r)
+                continue
+
+        fields_string = "', '".join(fields)
+        fields_string = f"'{fields_string}'"
+
+        return f"INSERT INTO `{self._tableName}` ({fields_string}) " + super().sql()
+
+
+class TableDelete(TableJoin):
+    def sql(self):
+        return f"DELETE `{self._tables[0].get_table_name()}` {self._table_string()}" \
+               f"{self._where_string()}{self._group_string()}{self._order_string()}{self._limit_string()}"
+
+
+class TableUpdate(TableJoin):
+    def __init__(self):
+        super(TableUpdate, self).__init__()
+        self._set_list = []

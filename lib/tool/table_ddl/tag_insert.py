@@ -19,12 +19,13 @@ class Table(rule.Table):
     def get_table_name(self):
         return self._insertTableName
 
-    def build(self, db, is_truncate_table=False):
+    def build(self, db, is_truncate_table=False, build_rule=True):
         if is_truncate_table:
             db.drop(self._insertTableName)
 
         self.DDLTagTable.build(db=db)
-        super().build(db=db, is_truncate_table=is_truncate_table)
+        if build_rule:
+            super().build(db=db, is_truncate_table=is_truncate_table)
 
         return self
 
